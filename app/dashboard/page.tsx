@@ -10,6 +10,12 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('display_name, xp, streak')
+    .eq('id', user.id)
+    .single()
+
   return (
     <div className="flex flex-col min-h-screen bg-navy">
       {/* Navbar */}
@@ -34,9 +40,20 @@ export default async function DashboardPage() {
             Dashboard
           </p>
           <h1 className="text-4xl font-bold text-white">
-            Welcome back!
+            Welcome back{profile?.display_name ? `, ${profile.display_name}` : ''}!
           </h1>
-          <p className="mt-3 text-white/60 text-lg">{user.email}</p>
+
+          {/* Stats */}
+          <div className="mt-10 flex gap-6 justify-center">
+            <div className="bg-white/10 rounded-2xl px-8 py-6 min-w-32">
+              <p className="text-3xl font-bold text-gold">{profile?.xp ?? 0}</p>
+              <p className="mt-1 text-sm text-white/60 font-medium">XP</p>
+            </div>
+            <div className="bg-white/10 rounded-2xl px-8 py-6 min-w-32">
+              <p className="text-3xl font-bold text-gold">{profile?.streak ?? 0}</p>
+              <p className="mt-1 text-sm text-white/60 font-medium">Day streak</p>
+            </div>
+          </div>
         </div>
       </main>
     </div>
