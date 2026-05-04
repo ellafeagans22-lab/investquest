@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import BottomNav from '@/components/BottomNav'
+import { createServerSupabaseClient } from '@/lib/supabase-server'
 
 const units = [
   {
@@ -14,12 +15,24 @@ const units = [
   },
 ]
 
-export default function LearnPage() {
+export default async function LearnPage() {
+  const supabase = await createServerSupabaseClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  let completedIds = new Set<string>()
+  if (user) {
+    const { data } = await supabase
+      .from('lesson_completions')
+      .select('lesson_id')
+      .eq('user_id', user.id)
+    if (data) completedIds = new Set(data.map((r) => String(r.lesson_id)))
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-navy">
       {/* Navbar */}
       <nav className="px-6 py-4 border-b border-white/10">
-        <div className="max-w-6xl mx-auto flex items-center gap-3">
+        <div className="max-w-2xl mx-auto flex items-center gap-3">
           <div className="w-8 h-8 rounded-md bg-gold flex items-center justify-center">
             <span className="text-navy font-bold text-sm">IQ</span>
           </div>
@@ -49,19 +62,46 @@ export default function LearnPage() {
 
               {/* Lesson cards */}
               <ol className="flex flex-col gap-3">
-                {unit.lessons.map((lesson, index) => (
-                  <li key={lesson}>
-                    <Link href={`/learn/${index + 1}`} className="flex items-center gap-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-gold/40 rounded-xl px-5 py-4 transition-colors group">
-                      <span className="w-8 h-8 rounded-full bg-gold/10 border border-gold/30 flex items-center justify-center text-gold text-sm font-bold shrink-0 group-hover:bg-gold group-hover:text-navy transition-colors">
-                        {index + 1}
-                      </span>
-                      <span className="text-white font-medium">{lesson}</span>
-                      <span className="ml-auto text-white/30 group-hover:text-gold transition-colors">
-                        →
-                      </span>
-                    </Link>
-                  </li>
-                ))}
+                {unit.lessons.map((lesson, index) => {
+                  const lessonId = String(index + 1)
+                  const done = completedIds.has(lessonId)
+                  return (
+                    <li key={lesson}>
+                      <Link
+                        href={`/learn/${lessonId}`}
+                        className={`flex items-center gap-4 border rounded-xl px-5 py-4 transition-colors group ${
+                          done
+                            ? 'bg-gold/5 border-gold/20 hover:bg-gold/10'
+                            : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-gold/40'
+                        }`}
+                      >
+                        <span
+                          className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 transition-colors ${
+                            done
+                              ? 'bg-gold text-navy'
+                              : 'bg-gold/10 border border-gold/30 text-gold group-hover:bg-gold group-hover:text-navy'
+                          }`}
+                        >
+                          {index + 1}
+                        </span>
+                        <span
+                          className={`font-medium ${done ? 'text-white/50' : 'text-white'}`}
+                        >
+                          {lesson}
+                        </span>
+                        <span className="ml-auto shrink-0">
+                          {done ? (
+                            <CheckIcon />
+                          ) : (
+                            <span className="text-white/30 group-hover:text-gold transition-colors">
+                              →
+                            </span>
+                          )}
+                        </span>
+                      </Link>
+                    </li>
+                  )
+                })}
               </ol>
             </section>
           ))}
@@ -69,5 +109,22 @@ export default function LearnPage() {
       </main>
       <BottomNav />
     </div>
+  )
+}
+
+function CheckIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 20 20"
+      fill="currentColor"
+      className="w-5 h-5 text-gold"
+    >
+      <path
+        fillRule="evenodd"
+        d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
+        clipRule="evenodd"
+      />
+    </svg>
   )
 }
