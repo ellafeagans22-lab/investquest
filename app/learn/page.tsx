@@ -8,6 +8,8 @@ const units = [
       'What is the Stock Market?',
       'What is a Share?',
       'Bulls vs. Bears',
+      'What is Compound Interest?',
+      'What is Inflation?',
     ],
   },
 ]
