@@ -125,13 +125,26 @@ async function awardXp() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('xp')
+    .select('xp, streak, last_active')
     .eq('id', user.id)
     .single()
 
+  const today = new Date().toISOString().split('T')[0]
+  const yesterday = new Date(Date.now() - 86_400_000).toISOString().split('T')[0]
+  const lastActive: string | null = profile?.last_active ?? null
+
+  let newStreak: number
+  if (lastActive === today) {
+    newStreak = profile?.streak ?? 1
+  } else if (lastActive === yesterday) {
+    newStreak = (profile?.streak ?? 0) + 1
+  } else {
+    newStreak = 1
+  }
+
   await supabase
     .from('profiles')
-    .update({ xp: (profile?.xp ?? 0) + 10 })
+    .update({ xp: (profile?.xp ?? 0) + 10, streak: newStreak, last_active: today })
     .eq('id', user.id)
 }
 
