@@ -189,7 +189,7 @@ const lessons: Record<string, Lesson> = {
   },
 }
 
-async function awardXp() {
+async function awardXp(lessonId: string) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return
@@ -213,10 +213,15 @@ async function awardXp() {
     newStreak = 1
   }
 
-  await supabase
-    .from('profiles')
-    .update({ xp: (profile?.xp ?? 0) + 10, streak: newStreak, last_active: today })
-    .eq('id', user.id)
+  await Promise.all([
+    supabase
+      .from('profiles')
+      .update({ xp: (profile?.xp ?? 0) + 10, streak: newStreak, last_active: today })
+      .eq('id', user.id),
+    supabase
+      .from('lesson_completions')
+      .upsert({ user_id: user.id, lesson_id: lessonId }, { ignoreDuplicates: true }),
+  ])
 }
 
 export default function LessonPage({
@@ -252,7 +257,7 @@ export default function LessonPage({
   async function handleNext() {
     if (isLast) {
       setSaving(true)
-      await awardXp()
+      await awardXp(lessonId)
       setFinished(true)
     } else {
       setCurrentIndex((i) => i + 1)
