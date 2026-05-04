@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 const units = [
   {
     title: 'Investing Basics',
@@ -46,7 +48,7 @@ export default function LearnPage() {
               <ol className="flex flex-col gap-3">
                 {unit.lessons.map((lesson, index) => (
                   <li key={lesson}>
-                    <button className="w-full text-left flex items-center gap-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-gold/40 rounded-xl px-5 py-4 transition-colors group">
+                    <Link href={`/learn/${index + 1}`} className="flex items-center gap-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-gold/40 rounded-xl px-5 py-4 transition-colors group">
                       <span className="w-8 h-8 rounded-full bg-gold/10 border border-gold/30 flex items-center justify-center text-gold text-sm font-bold shrink-0 group-hover:bg-gold group-hover:text-navy transition-colors">
                         {index + 1}
                       </span>
@@ -54,7 +56,7 @@ export default function LearnPage() {
                       <span className="ml-auto text-white/30 group-hover:text-gold transition-colors">
                         →
                       </span>
-                    </button>
+                    </Link>
                   </li>
                 ))}
               </ol>
