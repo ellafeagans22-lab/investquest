@@ -5,12 +5,22 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 const units = [
   {
     title: 'Investing Basics',
+    startId: 1,
     lessons: [
       'What is the Stock Market?',
       'What is a Share?',
       'Bulls vs. Bears',
       'What is Compound Interest?',
       'What is Inflation?',
+    ],
+  },
+  {
+    title: 'Stock Market Deep Dive',
+    startId: 6,
+    lessons: [
+      'What is a Dividend?',
+      'What is Market Cap?',
+      'How to Read a Stock Chart?',
     ],
   },
 ]
@@ -63,7 +73,7 @@ export default async function LearnPage() {
               {/* Lesson cards */}
               <ol className="flex flex-col gap-3">
                 {unit.lessons.map((lesson, index) => {
-                  const lessonId = String(index + 1)
+                  const lessonId = String(unit.startId + index)
                   const done = completedIds.has(lessonId)
                   return (
                     <li key={lesson}>
