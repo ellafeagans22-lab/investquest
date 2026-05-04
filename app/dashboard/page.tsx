@@ -19,9 +19,11 @@ export default async function DashboardPage() {
 
   const xp = profile?.xp ?? 0
   const streak = profile?.streak ?? 0
-  const displayName = profile?.display_name ?? null
+  const displayName = profile?.display_name
+    ? profile.display_name.charAt(0).toUpperCase() + profile.display_name.slice(1)
+    : null
 
-  const level = Math.floor(xp / 100)
+  const level = Math.floor(xp / 100) + 1
   const xpInLevel = xp % 100
   const xpToNext = 100 - xpInLevel
 
