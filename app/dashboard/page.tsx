@@ -2,6 +2,7 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import SignOutButton from './SignOutButton'
+import DisplayNameEditor from './DisplayNameEditor'
 
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient()
@@ -19,12 +20,6 @@ export default async function DashboardPage() {
 
   const xp = profile?.xp ?? 0
   const streak = profile?.streak ?? 0
-  const displayName = profile?.display_name
-    ? (() => {
-        const clean = profile.display_name.replace(/[0-9]/g, '').replace(/[^a-zA-Z]/g, '')
-        return clean ? clean.charAt(0).toUpperCase() + clean.slice(1) : null
-      })()
-    : null
 
   const level = Math.floor(xp / 100) + 1
   const xpInLevel = xp % 100
@@ -50,13 +45,7 @@ export default async function DashboardPage() {
       <main className="flex-1 px-6 py-12">
         <div className="max-w-2xl mx-auto">
 
-          {/* Welcome */}
-          <p className="text-gold text-sm font-semibold uppercase tracking-widest mb-2">
-            Dashboard
-          </p>
-          <h1 className="text-3xl font-bold text-white mb-8">
-            Welcome back{displayName ? `, ${displayName}` : ''}!
-          </h1>
+          <DisplayNameEditor initialName={profile?.display_name ?? null} />
 
           <div className="flex flex-col gap-4">
             {/* XP & Level card */}
