@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import BottomNav from '@/components/BottomNav'
 
 const units = [
   {
@@ -26,7 +27,7 @@ export default function LearnPage() {
         </div>
       </nav>
 
-      <main className="flex-1 px-6 py-12">
+      <main className="flex-1 px-6 pt-12 pb-28">
         <div className="max-w-2xl mx-auto">
           <p className="text-gold text-sm font-semibold uppercase tracking-widest mb-2">
             Learn
@@ -64,6 +65,7 @@ export default function LearnPage() {
           ))}
         </div>
       </main>
+      <BottomNav />
     </div>
   )
 }

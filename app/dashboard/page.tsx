@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import SignOutButton from './SignOutButton'
 import DisplayNameEditor from './DisplayNameEditor'
+import BottomNav from '@/components/BottomNav'
 
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient()
@@ -42,7 +43,7 @@ export default async function DashboardPage() {
         </div>
       </nav>
 
-      <main className="flex-1 px-6 py-12">
+      <main className="flex-1 px-6 pt-12 pb-28">
         <div className="max-w-2xl mx-auto">
 
           <DisplayNameEditor initialName={profile?.display_name ?? null} />
@@ -101,6 +102,7 @@ export default async function DashboardPage() {
 
         </div>
       </main>
+      <BottomNav />
     </div>
   )
 }
