@@ -116,6 +116,77 @@ const lessons: Record<string, Lesson> = {
       },
     ],
   },
+  '4': {
+    title: 'What is Compound Interest?',
+    intro:
+      'Compound interest is interest earned not just on your original investment, but also on the interest you\'ve already accumulated. ' +
+      'Over time, this "interest on interest" effect causes wealth to grow exponentially — making it one of the most powerful forces in personal finance.',
+    questions: [
+      {
+        prompt: 'What makes compound interest different from simple interest?',
+        options: [
+          'It is only available to institutional investors',
+          'It earns interest on both the principal and previously earned interest',
+          'It pays out a fixed amount regardless of the balance',
+          'It is calculated only at the end of a loan term',
+        ],
+        answer: 'It earns interest on both the principal and previously earned interest',
+      },
+      {
+        prompt: 'You invest $1,000 at 10% annual compound interest. What is your balance after 2 years?',
+        options: ['$1,100', '$1,200', '$1,210', '$1,020'],
+        answer: '$1,210',
+      },
+      {
+        prompt: 'Which habit best takes advantage of compound interest?',
+        options: [
+          'Withdrawing interest earnings every month',
+          'Investing a lump sum only once',
+          'Starting to invest as early as possible and reinvesting returns',
+          'Keeping savings in cash to avoid risk',
+        ],
+        answer: 'Starting to invest as early as possible and reinvesting returns',
+      },
+    ],
+  },
+  '5': {
+    title: 'What is Inflation?',
+    intro:
+      'Inflation is the rate at which the general level of prices for goods and services rises over time, reducing the purchasing power of money. ' +
+      'This means that £100 today will buy less in the future — which is why simply holding cash can quietly erode your wealth.',
+    questions: [
+      {
+        prompt: 'What does inflation measure?',
+        options: [
+          'The total value of a country\'s stock market',
+          'The rate at which average prices rise over time',
+          'The speed at which banks lend money',
+          'The difference between import and export values',
+        ],
+        answer: 'The rate at which average prices rise over time',
+      },
+      {
+        prompt: 'If inflation is 5% and your savings account pays 2% interest, what happens to your purchasing power?',
+        options: [
+          'It increases by 7%',
+          'It stays the same',
+          'It decreases by approximately 3%',
+          'It doubles over 10 years',
+        ],
+        answer: 'It decreases by approximately 3%',
+      },
+      {
+        prompt: 'Which of these is a common way investors try to outpace inflation?',
+        options: [
+          'Holding large amounts of cash',
+          'Investing in assets that historically grow faster than inflation, like stocks',
+          'Spending money as quickly as possible',
+          'Keeping money in a zero-interest current account',
+        ],
+        answer: 'Investing in assets that historically grow faster than inflation, like stocks',
+      },
+    ],
+  },
 }
 
 async function awardXp() {
