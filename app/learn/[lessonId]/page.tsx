@@ -2,6 +2,7 @@
 
 import { use, useState } from 'react'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase-browser'
 
 type Question = {
   prompt: string
@@ -49,6 +50,89 @@ const lessons: Record<string, Lesson> = {
       },
     ],
   },
+  '2': {
+    title: 'What is a Share?',
+    intro:
+      'A share (or stock) represents a unit of ownership in a company. ' +
+      'When you buy a share, you become a part-owner of that business and are entitled to a portion of its profits and assets.',
+    questions: [
+      {
+        prompt: 'What does owning a share of a company mean?',
+        options: [
+          'You have lent money to the company',
+          'You own a small piece of the company',
+          'You work for the company',
+          'You are guaranteed a fixed return',
+        ],
+        answer: 'You own a small piece of the company',
+      },
+      {
+        prompt: 'What is a dividend?',
+        options: [
+          'A fee charged for buying shares',
+          'A tax on investment profits',
+          'A share of a company\'s profits paid to shareholders',
+          'The price at which a share is first sold',
+        ],
+        answer: 'A share of a company\'s profits paid to shareholders',
+      },
+      {
+        prompt: 'If a company has 1,000 shares and you own 100, what percentage of the company do you own?',
+        options: ['1%', '5%', '10%', '100%'],
+        answer: '10%',
+      },
+    ],
+  },
+  '3': {
+    title: 'Bulls vs. Bears',
+    intro:
+      'In financial markets, a "bull market" describes a period of rising prices and investor optimism, ' +
+      'while a "bear market" refers to a prolonged period of falling prices and pessimism.',
+    questions: [
+      {
+        prompt: 'What does a "bull market" refer to?',
+        options: [
+          'A market dominated by large institutional investors',
+          'A period of rising stock prices and investor confidence',
+          'A market where only bonds are traded',
+          'A period of high inflation and falling wages',
+        ],
+        answer: 'A period of rising stock prices and investor confidence',
+      },
+      {
+        prompt: 'A bear market is generally defined as a decline of what percentage from recent highs?',
+        options: ['5%', '10%', '20%', '50%'],
+        answer: '20%',
+      },
+      {
+        prompt: 'Which best describes investor sentiment during a bear market?',
+        options: [
+          'Optimism and increased buying',
+          'Pessimism and increased selling',
+          'Indifference to market conditions',
+          'Excitement about new IPOs',
+        ],
+        answer: 'Pessimism and increased selling',
+      },
+    ],
+  },
+}
+
+async function awardXp() {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('xp')
+    .eq('id', user.id)
+    .single()
+
+  await supabase
+    .from('profiles')
+    .update({ xp: (profile?.xp ?? 0) + 10 })
+    .eq('id', user.id)
 }
 
 export default function LessonPage({
@@ -62,6 +146,7 @@ export default function LessonPage({
   const [currentIndex, setCurrentIndex] = useState(0)
   const [selected, setSelected] = useState<string | null>(null)
   const [finished, setFinished] = useState(false)
+  const [saving, setSaving] = useState(false)
 
   if (!lesson) {
     return (
@@ -80,8 +165,10 @@ export default function LessonPage({
     setSelected(option)
   }
 
-  function handleNext() {
+  async function handleNext() {
     if (isLast) {
+      setSaving(true)
+      await awardXp()
       setFinished(true)
     } else {
       setCurrentIndex((i) => i + 1)
@@ -135,9 +222,10 @@ export default function LessonPage({
               <h2 className="text-3xl font-bold text-white mb-3">
                 Lesson complete!
               </h2>
-              <p className="text-white/60 mb-8">
+              <p className="text-white/60 mb-2">
                 You finished &ldquo;{lesson.title}&rdquo;
               </p>
+              <p className="text-gold font-semibold mb-8">+10 XP</p>
               <Link
                 href="/learn"
                 className="inline-block bg-gold text-navy font-semibold px-8 py-3 rounded-lg hover:opacity-90 transition-opacity"
@@ -213,9 +301,10 @@ export default function LessonPage({
                   {isCorrect && (
                     <button
                       onClick={handleNext}
-                      className="bg-gold text-navy font-semibold px-6 py-2.5 rounded-lg hover:opacity-90 transition-opacity"
+                      disabled={saving}
+                      className="bg-gold text-navy font-semibold px-6 py-2.5 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
                     >
-                      {isLast ? 'Finish' : 'Next →'}
+                      {saving ? 'Saving…' : isLast ? 'Finish' : 'Next →'}
                     </button>
                   )}
                 </div>
