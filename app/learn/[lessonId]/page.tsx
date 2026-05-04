@@ -125,9 +125,9 @@ async function awardXp() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('xp, streak, last_active')
+    .select('*')
     .eq('id', user.id)
-    .single()
+    .maybeSingle()
 
   const today = new Date().toISOString().split('T')[0]
   const yesterday = new Date(Date.now() - 86_400_000).toISOString().split('T')[0]
