@@ -325,6 +325,9 @@ async function awardXp(lessonId: string) {
     supabase
       .from('lesson_completions')
       .upsert({ user_id: user.id, lesson_id: lessonId }, { ignoreDuplicates: true }),
+    supabase
+      .from('xp_history')
+      .insert({ user_id: user.id, xp_earned: 10, earned_at: today }),
   ])
 }
 
