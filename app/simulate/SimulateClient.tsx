@@ -35,12 +35,14 @@ export default function SimulateClient({ userId, initialCash, initialPositions }
   const [shareInput, setShareInput] = useState('1')
   const [prices, setPrices] = useState<StockPrice[]>([])
   const [loadingPrices, setLoadingPrices] = useState(true)
+  const [lastFetched, setLastFetched] = useState<Date | null>(null)
 
   async function refreshPrices() {
     setLoadingPrices(true)
     try {
       const data = await fetchLivePrices()
       setPrices(data)
+      setLastFetched(new Date())
       console.log(prices)
     } catch {
       // keep existing prices on error
@@ -291,6 +293,11 @@ export default function SimulateClient({ userId, initialCash, initialPositions }
               </p>
               <p className="text-white/60 text-sm">{modal.name}</p>
               <p className="text-gold font-bold text-xl mt-1">${modal.price.toFixed(2)} / share</p>
+              {modal.mode === 'buy' && lastFetched && (
+                <p className="text-white/30 text-xs mt-0.5">
+                  Buying at ${modal.price.toFixed(2)} · as of {lastFetched.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                </p>
+              )}
               {modal.mode === 'sell' && modal.maxShares !== undefined && (
                 <p className="text-white/40 text-xs mt-0.5">
                   You own {modal.maxShares} {modal.maxShares === 1 ? 'share' : 'shares'}
