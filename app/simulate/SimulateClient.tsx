@@ -170,30 +170,41 @@ export default function SimulateClient({ userId, initialCash, initialPositions }
                 </div>
               ) : (
                 <ul className="flex flex-col divide-y divide-white/5">
-                  {portfolio.map((pos) => (
-                    <li key={pos.ticker} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-lg bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0">
-                          <span className="text-gold text-[10px] font-bold">{pos.ticker.slice(0, 3)}</span>
+                  {portfolio.map((pos) => {
+                    const currentPrice = prices.find((p) => p.ticker === pos.ticker)?.price ?? pos.purchasePrice
+                    const unrealizedGL = (currentPrice - pos.purchasePrice) * pos.shares
+                    const pctChange = ((currentPrice - pos.purchasePrice) / pos.purchasePrice) * 100
+                    const up = unrealizedGL >= 0
+                    return (
+                      <li key={pos.ticker} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-lg bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0">
+                            <span className="text-gold text-[10px] font-bold">{pos.ticker.slice(0, 3)}</span>
+                          </div>
+                          <div>
+                            <p className="text-white text-sm font-semibold">{pos.ticker}</p>
+                            <p className="text-white/40 text-xs">{pos.shares} {pos.shares === 1 ? 'share' : 'shares'}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-white text-sm font-semibold">{pos.ticker}</p>
-                          <p className="text-white/40 text-xs">{pos.shares} {pos.shares === 1 ? 'share' : 'shares'}</p>
+                        <div className="flex items-center gap-3">
+                          <div className="text-right">
+                            <p className="text-gold font-semibold tabular-nums text-sm">
+                              ${fmt(pos.shares * currentPrice)}
+                            </p>
+                            <p className={`text-xs tabular-nums ${up ? 'text-green-400' : 'text-red-400'}`}>
+                              {up ? '+' : ''}{fmt(unrealizedGL)} ({up ? '+' : ''}{pctChange.toFixed(2)}%)
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => openSell(pos)}
+                            className="px-3 py-1.5 rounded-lg border border-white/20 text-white/70 text-xs font-bold hover:bg-white/10 transition-colors"
+                          >
+                            Sell
+                          </button>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <p className="text-gold font-semibold tabular-nums">
-                          ${fmt(pos.shares * pos.price)}
-                        </p>
-                        <button
-                          onClick={() => openSell(pos)}
-                          className="px-3 py-1.5 rounded-lg border border-white/20 text-white/70 text-xs font-bold hover:bg-white/10 transition-colors"
-                        >
-                          Sell
-                        </button>
-                      </div>
-                    </li>
-                  ))}
+                      </li>
+                    )
+                  })}
                 </ul>
               )}
             </div>
