@@ -1,3 +1,6 @@
+'use client'
+
+import { useState } from 'react'
 import BottomNav from '@/components/BottomNav'
 
 const stocks = [
@@ -8,7 +11,45 @@ const stocks = [
   { ticker: 'AMZN', name: 'Amazon.com, Inc.', price: 196.11 },
 ]
 
+type Position = { ticker: string; shares: number; price: number }
+type BuyTarget = { ticker: string; name: string; price: number }
+
 export default function SimulatePage() {
+  const [cash, setCash] = useState(10_000)
+  const [portfolio, setPortfolio] = useState<Position[]>([])
+  const [buyTarget, setBuyTarget] = useState<BuyTarget | null>(null)
+  const [shareInput, setShareInput] = useState('1')
+
+  const sharesToBuy = Math.max(0, parseInt(shareInput, 10) || 0)
+  const totalCost = buyTarget ? sharesToBuy * buyTarget.price : 0
+  const canConfirm = sharesToBuy > 0 && totalCost <= cash
+
+  function openModal(stock: BuyTarget) {
+    setShareInput('1')
+    setBuyTarget(stock)
+  }
+
+  function closeModal() {
+    setBuyTarget(null)
+  }
+
+  function confirmBuy() {
+    if (!buyTarget || !canConfirm) return
+    setCash((prev) => prev - totalCost)
+    setPortfolio((prev) => {
+      const existing = prev.find((p) => p.ticker === buyTarget.ticker)
+      if (existing) {
+        return prev.map((p) =>
+          p.ticker === buyTarget.ticker
+            ? { ...p, shares: p.shares + sharesToBuy }
+            : p
+        )
+      }
+      return [...prev, { ticker: buyTarget.ticker, shares: sharesToBuy, price: buyTarget.price }]
+    })
+    closeModal()
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-navy">
       {/* Navbar */}
@@ -39,7 +80,9 @@ export default function SimulatePage() {
                 <p className="text-xs text-white/50 font-semibold uppercase tracking-widest mb-0.5">
                   Virtual Cash
                 </p>
-                <p className="text-3xl font-bold text-gold">$10,000.00</p>
+                <p className="text-3xl font-bold text-gold">
+                  ${cash.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
               </div>
               <div className="w-12 h-12 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-gold">
@@ -55,11 +98,32 @@ export default function SimulatePage() {
               <p className="text-xs text-white/50 font-semibold uppercase tracking-widest mb-4">
                 Your Portfolio
               </p>
-              <div className="flex flex-col items-center justify-center py-6 gap-2">
-                <span className="text-3xl">📭</span>
-                <p className="text-white/30 text-sm font-medium">No positions yet</p>
-                <p className="text-white/20 text-xs">Buy a stock below to get started</p>
-              </div>
+              {portfolio.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-6 gap-2">
+                  <span className="text-3xl">📭</span>
+                  <p className="text-white/30 text-sm font-medium">No positions yet</p>
+                  <p className="text-white/20 text-xs">Buy a stock below to get started</p>
+                </div>
+              ) : (
+                <ul className="flex flex-col divide-y divide-white/5">
+                  {portfolio.map((pos) => (
+                    <li key={pos.ticker} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-lg bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0">
+                          <span className="text-gold text-[10px] font-bold">{pos.ticker.slice(0, 3)}</span>
+                        </div>
+                        <div>
+                          <p className="text-white text-sm font-semibold">{pos.ticker}</p>
+                          <p className="text-white/40 text-xs">{pos.shares} {pos.shares === 1 ? 'share' : 'shares'}</p>
+                        </div>
+                      </div>
+                      <p className="text-gold font-semibold tabular-nums">
+                        ${(pos.shares * pos.price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
 
             {/* Market section */}
@@ -84,8 +148,8 @@ export default function SimulatePage() {
                         ${stock.price.toFixed(2)}
                       </p>
                       <button
+                        onClick={() => openModal(stock)}
                         className="px-3 py-1.5 rounded-lg bg-gold text-navy text-xs font-bold hover:opacity-90 transition-opacity"
-                        disabled
                       >
                         Buy
                       </button>
@@ -99,6 +163,68 @@ export default function SimulatePage() {
       </main>
 
       <BottomNav />
+
+      {/* Buy modal */}
+      {buyTarget && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 px-4 pb-6 sm:pb-0"
+          onClick={closeModal}
+        >
+          <div
+            className="w-full max-w-sm bg-[#1B2E4B] border border-white/10 rounded-2xl p-6 flex flex-col gap-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div>
+              <p className="text-xs text-white/50 font-semibold uppercase tracking-widest mb-1">
+                Buy {buyTarget.ticker}
+              </p>
+              <p className="text-white/60 text-sm">{buyTarget.name}</p>
+              <p className="text-gold font-bold text-xl mt-1">${buyTarget.price.toFixed(2)} / share</p>
+            </div>
+
+            <div>
+              <label className="text-xs text-white/50 font-semibold uppercase tracking-widest block mb-2">
+                How many shares?
+              </label>
+              <input
+                type="number"
+                min="1"
+                value={shareInput}
+                onChange={(e) => setShareInput(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-lg font-semibold focus:outline-none focus:border-gold/50 transition-colors"
+                autoFocus
+              />
+            </div>
+
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-white/40">Total cost</span>
+              <span className={`font-semibold tabular-nums ${totalCost > cash ? 'text-red-400' : 'text-white'}`}>
+                ${totalCost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+            </div>
+
+            {totalCost > cash && (
+              <p className="text-red-400 text-xs -mt-2">Not enough cash</p>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={closeModal}
+                className="flex-1 py-3 rounded-xl border border-white/10 text-white/60 text-sm font-semibold hover:bg-white/5 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmBuy}
+                disabled={!canConfirm}
+                className="flex-1 py-3 rounded-xl bg-gold text-navy text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
