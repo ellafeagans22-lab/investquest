@@ -90,7 +90,12 @@ export default function SimulateClient({ userId, initialCash, initialPositions }
       newCash = cash - tradeValue
       const existing = portfolio.find((p) => p.ticker === modal.ticker)
       newPositions = existing
-        ? portfolio.map((p) => p.ticker === modal.ticker ? { ...p, shares: p.shares + shareCount } : p)
+        ? portfolio.map((p) => {
+            if (p.ticker !== modal.ticker) return p
+            const newShares = p.shares + shareCount
+            const newAvgPrice = (p.shares * p.price + shareCount * modal.price) / newShares
+            return { ...p, shares: newShares, price: newAvgPrice }
+          })
         : [...portfolio, { ticker: modal.ticker, shares: shareCount, price: modal.price }]
     } else {
       newCash = cash + tradeValue
