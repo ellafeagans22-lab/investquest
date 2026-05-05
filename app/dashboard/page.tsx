@@ -17,7 +17,7 @@ const allLessons = [
 ]
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-const BAR_MAX_PX = 72
+const BAR_MAX_PX = 44
 
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient()
@@ -139,7 +139,7 @@ export default async function DashboardPage() {
                   return (
                     <div key={label} className="flex-1 flex flex-col items-center gap-1.5">
                       {dayXp > 0 && (
-                        <span className="text-[10px] text-gold font-semibold">{dayXp}</span>
+                        <span className="text-[10px] text-gold font-semibold">{dayXp} XP</span>
                       )}
                       <div className="w-full flex items-end" style={{ height: `${BAR_MAX_PX}px` }}>
                         <div
