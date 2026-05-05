@@ -2,6 +2,41 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import BottomNav from '@/components/BottomNav'
 
+const badges = [
+  {
+    id: 'first-step',
+    emoji: '🥇',
+    name: 'First Step',
+    description: 'Complete your first lesson.',
+    earned: (completedCount: number, _streak: number, completedIds: Set<string>) =>
+      completedCount >= 1,
+  },
+  {
+    id: 'on-fire',
+    emoji: '🔥',
+    name: 'On Fire',
+    description: 'Maintain a streak of 3 or more days.',
+    earned: (_completedCount: number, streak: number, _completedIds: Set<string>) =>
+      streak >= 3,
+  },
+  {
+    id: 'unit-1-graduate',
+    emoji: '📚',
+    name: 'Unit 1 Graduate',
+    description: 'Complete all 5 lessons in Investing Basics.',
+    earned: (_completedCount: number, _streak: number, completedIds: Set<string>) =>
+      ['1', '2', '3', '4', '5'].every((id) => completedIds.has(id)),
+  },
+  {
+    id: 'investquest-pro',
+    emoji: '⭐',
+    name: 'InvestQuest Pro',
+    description: 'Complete all 8 lessons.',
+    earned: (completedCount: number, _streak: number, _completedIds: Set<string>) =>
+      completedCount >= 8,
+  },
+]
+
 const allLessons = [
   { id: '1', title: 'What is the Stock Market?' },
   { id: '2', title: 'What is a Share?' },
@@ -159,6 +194,46 @@ export default async function ProfilePage() {
                   className="h-full bg-gold rounded-full"
                   style={{ width: `${(completedCount / allLessons.length) * 100}%` }}
                 />
+              </div>
+            </div>
+            {/* Badges */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl px-6 py-5">
+              <p className="text-xs text-white/50 font-semibold uppercase tracking-widest mb-4">
+                Badges
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                {badges.map((badge) => {
+                  const isEarned = badge.earned(completedCount, streak, completedIds)
+                  return (
+                    <div
+                      key={badge.id}
+                      className={`rounded-xl px-4 py-4 border flex flex-col gap-2 ${
+                        isEarned
+                          ? 'bg-gold/10 border-gold/30'
+                          : 'bg-white/[0.02] border-white/5'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className={`text-2xl ${isEarned ? '' : 'grayscale opacity-30'}`}>
+                          {badge.emoji}
+                        </span>
+                        {!isEarned && (
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-white/20">
+                            <path fillRule="evenodd" d="M10 1a4.5 4.5 0 0 0-4.5 4.5V9H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-.5V5.5A4.5 4.5 0 0 0 10 1Zm3 8V5.5a3 3 0 1 0-6 0V9h6Z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </div>
+                      <div>
+                        <p className={`text-sm font-semibold ${isEarned ? 'text-white' : 'text-white/30'}`}>
+                          {badge.name}
+                        </p>
+                        <p className={`text-xs mt-0.5 leading-snug ${isEarned ? 'text-white/50' : 'text-white/20'}`}>
+                          {badge.description}
+                        </p>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             </div>
           </div>
