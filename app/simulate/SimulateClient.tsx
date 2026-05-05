@@ -41,6 +41,7 @@ export default function SimulateClient({ userId, initialCash, initialPositions }
     try {
       const data = await fetchLivePrices()
       setPrices(data)
+      console.log(prices)
     } catch {
       // keep existing prices on error
     } finally {

@@ -32,6 +32,7 @@ export async function GET() {
 
     const raw = message.content[0].type === 'text' ? message.content[0].text.trim() : '[]'
     const data = JSON.parse(raw)
+    console.log(data)
     return Response.json(data)
   } catch (err) {
     console.error('Stock price fetch error:', err)
