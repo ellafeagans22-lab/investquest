@@ -157,7 +157,7 @@ export default async function ProfilePage() {
 
             {/* Lessons completed */}
             <div className="bg-white/5 border border-white/10 rounded-2xl px-6 py-5">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-1">
                 <p className="text-xs text-white/50 font-semibold uppercase tracking-widest">
                   Lessons completed
                 </p>
@@ -165,6 +165,9 @@ export default async function ProfilePage() {
                   {completedCount} / {allLessons.length}
                 </span>
               </div>
+              <p className="text-sm text-gold/70 font-medium mb-4">
+                {completedCount} of {allLessons.length} lessons
+              </p>
 
               <ul className="flex flex-col gap-2">
                 {allLessons.map((lesson) => {
@@ -209,7 +212,7 @@ export default async function ProfilePage() {
                       key={badge.id}
                       className={`rounded-xl px-4 py-4 border flex flex-col gap-2 ${
                         isEarned
-                          ? 'bg-gold/10 border-gold/30'
+                          ? 'bg-gold/15 border-gold/60'
                           : 'bg-white/[0.02] border-white/5'
                       }`}
                     >
