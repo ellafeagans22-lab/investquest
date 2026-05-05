@@ -1,16 +1,19 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import BottomNav from '@/components/BottomNav'
 import { createClient } from '@/lib/supabase-browser'
+import { fetchLivePrices, type StockPrice } from '@/lib/stockPrices'
 
-const stocks = [
-  { ticker: 'AAPL', name: 'Apple Inc.', price: 213.49 },
-  { ticker: 'TSLA', name: 'Tesla, Inc.', price: 174.82 },
-  { ticker: 'GOOGL', name: 'Alphabet Inc.', price: 172.63 },
-  { ticker: 'MSFT', name: 'Microsoft Corp.', price: 415.30 },
-  { ticker: 'AMZN', name: 'Amazon.com, Inc.', price: 196.11 },
-]
+const STOCK_META: Record<string, string> = {
+  AAPL: 'Apple Inc.',
+  TSLA: 'Tesla, Inc.',
+  GOOGL: 'Alphabet Inc.',
+  MSFT: 'Microsoft Corp.',
+  AMZN: 'Amazon.com, Inc.',
+}
+
+const TICKERS = ['AAPL', 'TSLA', 'GOOGL', 'MSFT', 'AMZN']
 
 type Position = { ticker: string; shares: number; price: number }
 type ModalTarget = { ticker: string; name: string; price: number; mode: 'buy' | 'sell'; maxShares?: number }
@@ -30,6 +33,22 @@ export default function SimulateClient({ userId, initialCash, initialPositions }
   const [portfolio, setPortfolio] = useState<Position[]>(initialPositions)
   const [modal, setModal] = useState<ModalTarget | null>(null)
   const [shareInput, setShareInput] = useState('1')
+  const [prices, setPrices] = useState<StockPrice[]>([])
+  const [loadingPrices, setLoadingPrices] = useState(true)
+
+  async function refreshPrices() {
+    setLoadingPrices(true)
+    try {
+      const data = await fetchLivePrices()
+      setPrices(data)
+    } catch {
+      // keep existing prices on error
+    } finally {
+      setLoadingPrices(false)
+    }
+  }
+
+  useEffect(() => { refreshPrices() }, [])
 
   const shareCount = Math.max(0, parseInt(shareInput, 10) || 0)
   const tradeValue = modal ? shareCount * modal.price : 0
@@ -51,9 +70,9 @@ export default function SimulateClient({ userId, initialCash, initialPositions }
   }
 
   function openSell(pos: Position) {
-    const stock = stocks.find((s) => s.ticker === pos.ticker)
+    const livePrice = prices.find((s) => s.ticker === pos.ticker)
     setShareInput('1')
-    setModal({ ticker: pos.ticker, name: stock?.name ?? pos.ticker, price: pos.price, mode: 'sell', maxShares: pos.shares })
+    setModal({ ticker: pos.ticker, name: STOCK_META[pos.ticker] ?? pos.ticker, price: livePrice?.price ?? pos.price, mode: 'sell', maxShares: pos.shares })
   }
 
   function closeModal() {
@@ -169,35 +188,76 @@ export default function SimulateClient({ userId, initialCash, initialPositions }
 
             {/* Market section */}
             <div className="bg-white/5 border border-white/10 rounded-2xl px-6 py-5">
-              <p className="text-xs text-white/50 font-semibold uppercase tracking-widest mb-4">
-                Market
-              </p>
-              <ul className="flex flex-col divide-y divide-white/5">
-                {stocks.map((stock) => (
-                  <li key={stock.ticker} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-lg bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0">
-                        <span className="text-gold text-[10px] font-bold">{stock.ticker.slice(0, 3)}</span>
-                      </div>
-                      <div>
-                        <p className="text-white text-sm font-semibold">{stock.ticker}</p>
-                        <p className="text-white/40 text-xs">{stock.name}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <p className="text-white font-semibold tabular-nums">
-                        ${stock.price.toFixed(2)}
-                      </p>
-                      <button
-                        onClick={() => openBuy(stock)}
-                        className="px-3 py-1.5 rounded-lg bg-gold text-navy text-xs font-bold hover:opacity-90 transition-opacity"
-                      >
-                        Buy
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-xs text-white/50 font-semibold uppercase tracking-widest">
+                  Market
+                </p>
+                <button
+                  onClick={refreshPrices}
+                  disabled={loadingPrices}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/10 text-white/50 text-xs font-semibold hover:bg-white/5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {loadingPrices ? (
+                    <svg className="w-3 h-3 animate-spin" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                    </svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3">
+                      <path fillRule="evenodd" d="M4.755 10.059a7.5 7.5 0 0 1 12.548-3.364l1.903 1.903h-3.183a.75.75 0 1 0 0 1.5h4.992a.75.75 0 0 0 .75-.75V4.356a.75.75 0 0 0-1.5 0v3.18l-1.9-1.9A9 9 0 0 0 3.306 9.67a.75.75 0 1 0 1.45.388Zm15.408 3.352a.75.75 0 0 0-.919.53 7.5 7.5 0 0 1-12.548 3.364l-1.902-1.903h3.183a.75.75 0 0 0 0-1.5H2.984a.75.75 0 0 0-.75.75v4.992a.75.75 0 0 0 1.5 0v-3.18l1.9 1.9a9 9 0 0 0 15.059-4.035.75.75 0 0 0-.53-.918Z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                  Refresh Prices
+                </button>
+              </div>
+              {loadingPrices && prices.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-6 gap-2">
+                  <svg className="w-6 h-6 animate-spin text-gold/40" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                  </svg>
+                  <p className="text-white/30 text-xs">Fetching live prices…</p>
+                </div>
+              ) : (
+                <ul className="flex flex-col divide-y divide-white/5">
+                  {TICKERS.map((ticker) => {
+                    const live = prices.find((p) => p.ticker === ticker)
+                    const up = (live?.change ?? 0) >= 0
+                    return (
+                      <li key={ticker} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-lg bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0">
+                            <span className="text-gold text-[10px] font-bold">{ticker.slice(0, 3)}</span>
+                          </div>
+                          <div>
+                            <p className="text-white text-sm font-semibold">{ticker}</p>
+                            <p className="text-white/40 text-xs">{STOCK_META[ticker]}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="text-right">
+                            <p className="text-white font-semibold tabular-nums text-sm">
+                              {live ? `$${live.price.toFixed(2)}` : '—'}
+                            </p>
+                            {live && (
+                              <p className={`text-xs tabular-nums ${up ? 'text-green-400' : 'text-red-400'}`}>
+                                {up ? '+' : ''}{live.change.toFixed(2)} ({up ? '+' : ''}{live.changePercent.toFixed(2)}%)
+                              </p>
+                            )}
+                          </div>
+                          <button
+                            onClick={() => live && openBuy({ ticker, name: STOCK_META[ticker], price: live.price })}
+                            disabled={!live || loadingPrices}
+                            className="px-3 py-1.5 rounded-lg bg-gold text-navy text-xs font-bold hover:opacity-90 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
+                          >
+                            Buy
+                          </button>
+                        </div>
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
             </div>
           </div>
         </div>
