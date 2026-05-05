@@ -31,7 +31,8 @@ export async function GET() {
     })
 
     const raw = message.content[0].type === 'text' ? message.content[0].text.trim() : '[]'
-    const data = JSON.parse(raw)
+    const clean = raw.replace(/```json|```/g, '').trim()
+    const data = JSON.parse(clean)
     console.log(data)
     return Response.json(data)
   } catch (err) {
