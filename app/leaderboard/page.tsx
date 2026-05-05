@@ -4,6 +4,8 @@ import BottomNav from '@/components/BottomNav'
 
 const medals = ['🥇', '🥈', '🥉']
 
+const STARTING_BALANCE = 10_000
+
 function fmt(n: number) {
   return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
@@ -53,6 +55,12 @@ export default async function LeaderboardPage() {
                 const medal = medals[index] ?? null
                 const rank = index + 1
 
+                const totalValue = entry.total_value ?? 0
+                const gl = totalValue - STARTING_BALANCE
+                const glPct = (gl / STARTING_BALANCE) * 100
+                const up = gl >= 0
+                const glStr = `${up ? '+' : '−'}$${fmt(Math.abs(gl))} (${up ? '+' : '−'}${Math.abs(glPct).toFixed(1)}%)`
+
                 return (
                   <li key={entry.user_id}>
                     <div
@@ -92,10 +100,15 @@ export default async function LeaderboardPage() {
                         </p>
                       </div>
 
-                      {/* Total value */}
-                      <p className={`font-bold tabular-nums shrink-0 ${isCurrentUser ? 'text-gold' : 'text-white'}`}>
-                        ${fmt(entry.total_value ?? 0)}
-                      </p>
+                      {/* Total value + gain/loss */}
+                      <div className="text-right shrink-0">
+                        <p className={`font-bold tabular-nums ${isCurrentUser ? 'text-gold' : 'text-white'}`}>
+                          ${fmt(totalValue)}
+                        </p>
+                        <p className={`text-xs tabular-nums font-medium ${up ? 'text-green-400' : 'text-red-400'}`}>
+                          {glStr}
+                        </p>
+                      </div>
                     </div>
                   </li>
                 )
