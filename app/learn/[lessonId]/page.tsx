@@ -187,6 +187,110 @@ const lessons: Record<string, Lesson> = {
       },
     ],
   },
+  '6': {
+    title: 'What is a Dividend?',
+    intro:
+      'A dividend is a portion of a company\'s profits paid out to its shareholders, usually on a regular basis such as quarterly or annually. ' +
+      'Not all companies pay dividends — fast-growing firms often reinvest profits instead — but dividend-paying stocks are popular with investors seeking steady income.',
+    questions: [
+      {
+        prompt: 'What is a dividend?',
+        options: [
+          'A fee charged when you sell a stock',
+          'A portion of a company\'s profits distributed to shareholders',
+          'The price difference between buying and selling a stock',
+          'A penalty for holding shares too long',
+        ],
+        answer: 'A portion of a company\'s profits distributed to shareholders',
+      },
+      {
+        prompt: 'Which type of company is most likely to pay regular dividends?',
+        options: [
+          'A fast-growing tech startup reinvesting all profits',
+          'A new company that has never turned a profit',
+          'A large, established company with stable earnings',
+          'A company that has just gone public via an IPO',
+        ],
+        answer: 'A large, established company with stable earnings',
+      },
+      {
+        prompt: 'What is a dividend yield?',
+        options: [
+          'The total number of dividends paid over a company\'s lifetime',
+          'The annual dividend payment expressed as a percentage of the share price',
+          'The tax rate applied to dividend income',
+          'The minimum dividend a company must pay by law',
+        ],
+        answer: 'The annual dividend payment expressed as a percentage of the share price',
+      },
+    ],
+  },
+  '7': {
+    title: 'What is Market Cap?',
+    intro:
+      'Market capitalisation (market cap) is the total market value of a company\'s outstanding shares, calculated by multiplying the share price by the number of shares. ' +
+      'It is used to compare company sizes — firms are typically grouped as large-cap, mid-cap, or small-cap based on this figure.',
+    questions: [
+      {
+        prompt: 'How is a company\'s market cap calculated?',
+        options: [
+          'Annual revenue minus total expenses',
+          'Share price multiplied by total number of outstanding shares',
+          'Total assets minus total liabilities',
+          'Net profit divided by the number of employees',
+        ],
+        answer: 'Share price multiplied by total number of outstanding shares',
+      },
+      {
+        prompt: 'A company has 10 million shares outstanding and a share price of £50. What is its market cap?',
+        options: ['£5 million', '£50 million', '£500 million', '£5 billion'],
+        answer: '£500 million',
+      },
+      {
+        prompt: 'Which of these is generally considered a large-cap company?',
+        options: [
+          'A local bakery that just sold its first shares',
+          'A regional retailer with a £200 million market cap',
+          'A global technology company with a £1 trillion market cap',
+          'A startup valued at £10 million in its seed round',
+        ],
+        answer: 'A global technology company with a £1 trillion market cap',
+      },
+    ],
+  },
+  '8': {
+    title: 'How to Read a Stock Chart?',
+    intro:
+      'A stock chart is a visual representation of a share\'s price history over time, and is one of the most fundamental tools used by investors and traders. ' +
+      'Learning to read a chart helps you spot trends, understand volatility, and make more informed decisions about when to buy or sell.',
+    questions: [
+      {
+        prompt: 'On a basic stock chart, what does the x-axis typically represent?',
+        options: ['Share price', 'Trading volume', 'Time', 'Market cap'],
+        answer: 'Time',
+      },
+      {
+        prompt: 'What does a candlestick on a stock chart show?',
+        options: [
+          'Only the closing price for that period',
+          'The open, high, low, and close price for a given period',
+          'The average price across all exchanges',
+          'The number of shares traded that day',
+        ],
+        answer: 'The open, high, low, and close price for a given period',
+      },
+      {
+        prompt: 'If a stock\'s price has been making higher highs and higher lows over several weeks, what does this suggest?',
+        options: [
+          'The stock is in a downtrend',
+          'The stock price is flat and going sideways',
+          'The stock is in an uptrend',
+          'The company is about to go bankrupt',
+        ],
+        answer: 'The stock is in an uptrend',
+      },
+    ],
+  },
 }
 
 async function awardXp(lessonId: string) {
