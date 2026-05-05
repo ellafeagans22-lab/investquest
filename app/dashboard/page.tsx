@@ -5,6 +5,17 @@ import SignOutButton from './SignOutButton'
 import DisplayNameEditor from './DisplayNameEditor'
 import BottomNav from '@/components/BottomNav'
 
+const allLessons = [
+  { id: '1', title: 'What is the Stock Market?' },
+  { id: '2', title: 'What is a Share?' },
+  { id: '3', title: 'Bulls vs. Bears' },
+  { id: '4', title: 'What is Compound Interest?' },
+  { id: '5', title: 'What is Inflation?' },
+  { id: '6', title: 'What is a Dividend?' },
+  { id: '7', title: 'What is Market Cap?' },
+  { id: '8', title: 'How to Read a Stock Chart?' },
+]
+
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -13,11 +24,10 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('display_name, xp, streak')
-    .eq('id', user.id)
-    .maybeSingle()
+  const [{ data: profile }, { data: completions }] = await Promise.all([
+    supabase.from('profiles').select('display_name, xp, streak').eq('id', user.id).maybeSingle(),
+    supabase.from('lesson_completions').select('lesson_id').eq('user_id', user.id),
+  ])
 
   const xp = profile?.xp ?? 0
   const streak = profile?.streak ?? 0
@@ -25,6 +35,9 @@ export default async function DashboardPage() {
   const level = Math.floor(xp / 100) + 1
   const xpInLevel = xp % 100
   const xpToNext = 100 - xpInLevel
+
+  const completedIds = new Set((completions ?? []).map((r) => String(r.lesson_id)))
+  const nextLesson = allLessons.find((l) => !completedIds.has(l.id))
 
   return (
     <div className="flex flex-col min-h-screen bg-navy">
@@ -91,13 +104,26 @@ export default async function DashboardPage() {
               <span className="text-4xl" role="img" aria-label="fire">🔥</span>
             </div>
 
-            {/* CTA */}
-            <Link
-              href="/learn"
-              className="mt-2 flex items-center justify-center gap-2 bg-gold text-navy font-semibold px-6 py-3.5 rounded-xl hover:opacity-90 transition-opacity"
-            >
-              Continue Learning →
-            </Link>
+            {/* Next lesson CTA */}
+            {nextLesson ? (
+              <Link
+                href={`/learn/${nextLesson.id}`}
+                className="mt-2 flex items-center justify-between gap-4 bg-gold text-navy font-semibold px-6 py-4 rounded-xl hover:opacity-90 transition-opacity"
+              >
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold uppercase tracking-widest opacity-60 mb-0.5">
+                    Continue Learning
+                  </p>
+                  <p className="truncate">{nextLesson.title}</p>
+                </div>
+                <span className="text-xl shrink-0">→</span>
+              </Link>
+            ) : (
+              <div className="mt-2 flex items-center justify-center gap-3 bg-white/5 border border-white/10 rounded-xl px-6 py-4">
+                <span className="text-2xl">🎉</span>
+                <p className="text-white font-semibold">You&apos;re all caught up!</p>
+              </div>
+            )}
           </div>
 
         </div>
