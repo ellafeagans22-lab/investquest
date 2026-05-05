@@ -140,6 +140,29 @@ export default function SimulateClient({ userId, initialCash, initialPositions }
           </h1>
 
           <div className="flex flex-col gap-4">
+            {/* Summary card */}
+            {(() => {
+              const positionsValue = portfolio.reduce((sum, pos) => {
+                const currentPrice = prices.find((p) => p.ticker === pos.ticker)?.price ?? pos.purchasePrice
+                return sum + pos.shares * currentPrice
+              }, 0)
+              const totalValue = cash + positionsValue
+              const totalGL = totalValue - 10_000
+              const pctReturn = (totalGL / 10_000) * 100
+              const up = totalGL >= 0
+              return (
+                <div className="bg-white/5 border border-white/10 rounded-2xl px-6 py-5">
+                  <p className="text-xs text-white/50 font-semibold uppercase tracking-widest mb-3">
+                    Total Portfolio
+                  </p>
+                  <p className="text-3xl font-bold text-white mb-1">${fmt(totalValue)}</p>
+                  <p className={`text-sm font-semibold tabular-nums ${up ? 'text-green-400' : 'text-red-400'}`}>
+                    {up ? '+' : ''}{fmt(totalGL)} ({up ? '+' : ''}{pctReturn.toFixed(2)}%) vs $10,000 start
+                  </p>
+                </div>
+              )
+            })()}
+
             {/* Cash balance card */}
             <div className="bg-white/5 border border-white/10 rounded-2xl px-6 py-5 flex items-center justify-between">
               <div>
