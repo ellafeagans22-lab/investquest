@@ -49,7 +49,11 @@ export default function SimulateClient({ userId, initialCash, initialPositions }
     }
   }
 
-  useEffect(() => { refreshPrices() }, [])
+  useEffect(() => {
+    refreshPrices()
+    const interval = setInterval(refreshPrices, 30_000)
+    return () => clearInterval(interval)
+  }, [])
 
   const shareCount = Math.max(0, parseInt(shareInput, 10) || 0)
   const tradeValue = modal ? shareCount * modal.price : 0
