@@ -16,6 +16,9 @@ const allLessons = [
   { id: '8', title: 'How to Read a Stock Chart?' },
 ]
 
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const BAR_MAX_PX = 72
+
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -24,9 +27,12 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
-  const [{ data: profile }, { data: completions }] = await Promise.all([
+  const sevenDaysAgo = new Date(Date.now() - 6 * 86_400_000).toISOString().split('T')[0]
+
+  const [{ data: profile }, { data: completions }, { data: xpHistory }] = await Promise.all([
     supabase.from('profiles').select('display_name, xp, streak').eq('id', user.id).maybeSingle(),
     supabase.from('lesson_completions').select('lesson_id').eq('user_id', user.id),
+    supabase.from('xp_history').select('xp_earned, earned_at').eq('user_id', user.id).gte('earned_at', sevenDaysAgo),
   ])
 
   const xp = profile?.xp ?? 0
@@ -38,6 +44,22 @@ export default async function DashboardPage() {
 
   const completedIds = new Set((completions ?? []).map((r) => String(r.lesson_id)))
   const nextLesson = allLessons.find((l) => !completedIds.has(l.id))
+
+  // Build xp-per-day map
+  const xpByDay = new Map<string, number>()
+  for (const row of xpHistory ?? []) {
+    const date = String(row.earned_at)
+    xpByDay.set(date, (xpByDay.get(date) ?? 0) + row.xp_earned)
+  }
+
+  // Build ordered 7-day array (oldest → today)
+  const chartDays = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(Date.now() - (6 - i) * 86_400_000)
+    const dateStr = d.toISOString().split('T')[0]
+    return { label: DAY_NAMES[d.getUTCDay()], xp: xpByDay.get(dateStr) ?? 0 }
+  })
+
+  const maxXp = Math.max(...chartDays.map((d) => d.xp), 1)
 
   return (
     <div className="flex flex-col min-h-screen bg-navy">
@@ -102,6 +124,34 @@ export default async function DashboardPage() {
                 </p>
               </div>
               <span className="text-4xl" role="img" aria-label="fire">🔥</span>
+            </div>
+
+            {/* XP History chart */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl px-6 py-5">
+              <p className="text-xs text-white/50 font-semibold uppercase tracking-widest mb-5">
+                XP this week
+              </p>
+              <div className="flex items-end justify-between gap-1" style={{ height: `${BAR_MAX_PX + 24}px` }}>
+                {chartDays.map(({ label, xp: dayXp }) => {
+                  const barH = dayXp > 0
+                    ? Math.max(Math.round((dayXp / maxXp) * BAR_MAX_PX), 6)
+                    : 3
+                  return (
+                    <div key={label} className="flex-1 flex flex-col items-center gap-1.5">
+                      {dayXp > 0 && (
+                        <span className="text-[10px] text-gold font-semibold">{dayXp}</span>
+                      )}
+                      <div className="w-full flex items-end" style={{ height: `${BAR_MAX_PX}px` }}>
+                        <div
+                          className={`w-full rounded-t-md ${dayXp > 0 ? 'bg-gold' : 'bg-white/10'}`}
+                          style={{ height: `${barH}px` }}
+                        />
+                      </div>
+                      <span className="text-[11px] text-white/40 font-medium">{label}</span>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
 
             {/* Next lesson CTA */}
