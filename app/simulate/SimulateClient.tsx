@@ -15,7 +15,7 @@ const STOCK_META: Record<string, string> = {
 
 const TICKERS = ['AAPL', 'TSLA', 'GOOGL', 'MSFT', 'AMZN']
 
-type Position = { ticker: string; shares: number; price: number }
+type Position = { ticker: string; shares: number; price: number; purchasePrice: number }
 type ModalTarget = { ticker: string; name: string; price: number; mode: 'buy' | 'sell'; maxShares?: number }
 
 function fmt(n: number) {
@@ -99,10 +99,10 @@ export default function SimulateClient({ userId, initialCash, initialPositions }
         ? portfolio.map((p) => {
             if (p.ticker !== modal.ticker) return p
             const newShares = p.shares + shareCount
-            const newAvgPrice = (p.shares * p.price + shareCount * modal.price) / newShares
-            return { ...p, shares: newShares, price: newAvgPrice }
+            const newAvgPrice = (p.shares * p.purchasePrice + shareCount * modal.price) / newShares
+            return { ...p, shares: newShares, price: newAvgPrice, purchasePrice: newAvgPrice }
           })
-        : [...portfolio, { ticker: modal.ticker, shares: shareCount, price: modal.price }]
+        : [...portfolio, { ticker: modal.ticker, shares: shareCount, price: modal.price, purchasePrice: modal.price }]
     } else {
       newCash = cash + tradeValue
       newPositions = portfolio
