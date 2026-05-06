@@ -22,7 +22,8 @@ function fmt(n: number) {
   return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
-function Sparkline({ values }: { values: number[] }) {
+function Sparkline({ values, ticker }: { values: number[]; ticker: string }) {
+  console.log(`[Sparkline ${ticker}]`, values)
   if (values.length < 2) return null
   const w = 100, h = 32
   const min = Math.min(...values)
@@ -92,6 +93,7 @@ export default function SimulateClient({ userId, initialCash, initialPositions, 
       console.log(prices)
       const history = await fetchHistory()
       setPriceHistory(history)
+      console.log('[priceHistory]', history)
     } catch {
       // keep existing prices on error
     } finally {
@@ -330,8 +332,7 @@ export default function SimulateClient({ userId, initialCash, initialPositions, 
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          <span className="text-white text-xs">SPARK</span>
-                          <Sparkline values={priceHistory[ticker] ?? []} />
+                          <Sparkline ticker={ticker} values={priceHistory[ticker] ?? []} />
                           <div className="text-right">
                             <p className="text-white font-semibold tabular-nums text-sm">
                               {live ? `$${live.price.toFixed(2)}` : '—'}
