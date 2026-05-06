@@ -22,8 +22,7 @@ function fmt(n: number) {
   return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
-function Sparkline({ values, ticker }: { values: number[]; ticker: string }) {
-  console.log(`[Sparkline ${ticker}]`, values)
+function Sparkline({ values }: { values: number[] }) {
   if (values.length < 2) return null
   const w = 100, h = 32
   const min = Math.min(...values)
@@ -70,16 +69,12 @@ export default function SimulateClient({ userId, initialCash, initialPositions, 
     const supabase = createClient()
     const { data } = await supabase
       .from('price_history')
-      .select('ticker, price')
-      .order('created_at', { ascending: false })
-      .limit(100)
+      .select('ticker, price, fetched_at')
+      .order('fetched_at', { ascending: true })
     const history: Record<string, number[]> = {}
     for (const ticker of TICKERS) {
-      history[ticker] = (data ?? [])
-        .filter((r) => r.ticker === ticker)
-        .slice(0, 10)
-        .reverse()
-        .map((r) => r.price)
+      const rows = (data ?? []).filter((r) => r.ticker === ticker)
+      history[ticker] = rows.slice(-10).map((r) => r.price)
     }
     return history
   }
@@ -90,10 +85,8 @@ export default function SimulateClient({ userId, initialCash, initialPositions, 
       const data = await fetchLivePrices()
       setPrices(data)
       setLastFetched(new Date())
-      console.log(prices)
       const history = await fetchHistory()
       setPriceHistory(history)
-      console.log('[priceHistory]', history)
     } catch {
       // keep existing prices on error
     } finally {
@@ -332,7 +325,7 @@ export default function SimulateClient({ userId, initialCash, initialPositions, 
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          <Sparkline ticker={ticker} values={priceHistory[ticker] ?? []} />
+                          <Sparkline values={priceHistory[ticker] ?? []} />
                           <div className="text-right">
                             <p className="text-white font-semibold tabular-nums text-sm">
                               {live ? `$${live.price.toFixed(2)}` : '—'}

@@ -28,18 +28,14 @@ export default async function SimulatePage() {
 
   const { data: historyRows } = await supabase
     .from('price_history')
-    .select('ticker, price')
-    .order('created_at', { ascending: false })
-    .limit(100)
+    .select('ticker, price, fetched_at')
+    .order('fetched_at', { ascending: true })
 
   const TICKERS = ['AAPL', 'TSLA', 'GOOGL', 'MSFT', 'AMZN']
   const initialPriceHistory: Record<string, number[]> = {}
   for (const ticker of TICKERS) {
-    initialPriceHistory[ticker] = (historyRows ?? [])
-      .filter((r) => r.ticker === ticker)
-      .slice(0, 10)
-      .reverse()
-      .map((r) => r.price)
+    const rows = (historyRows ?? []).filter((r) => r.ticker === ticker)
+    initialPriceHistory[ticker] = rows.slice(-10).map((r) => r.price)
   }
 
   return (
