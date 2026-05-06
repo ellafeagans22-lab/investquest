@@ -24,7 +24,7 @@ function fmt(n: number) {
 
 function Sparkline({ values }: { values: number[] }) {
   if (values.length < 2) return null
-  const w = 80, h = 24
+  const w = 100, h = 32
   const min = Math.min(...values)
   const max = Math.max(...values)
   const range = max - min || 1
@@ -33,16 +33,18 @@ function Sparkline({ values }: { values: number[] }) {
     .join(' ')
   const up = values[values.length - 1] >= values[0]
   return (
-    <svg width={w} height={h}>
-      <polyline
-        points={points}
-        fill="none"
-        stroke={up ? '#4ade80' : '#f87171'}
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-        strokeLinecap="round"
-      />
-    </svg>
+    <div className="rounded-lg bg-white/5 px-2 py-1">
+      <svg width={w} height={h}>
+        <polyline
+          points={points}
+          fill="none"
+          stroke={up ? '#22c55e' : '#ef4444'}
+          strokeWidth="2"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+        />
+      </svg>
+    </div>
   )
 }
 
