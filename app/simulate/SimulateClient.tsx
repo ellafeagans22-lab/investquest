@@ -330,6 +330,7 @@ export default function SimulateClient({ userId, initialCash, initialPositions, 
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
+                          <span className="text-white text-xs">SPARK</span>
                           <Sparkline values={priceHistory[ticker] ?? []} />
                           <div className="text-right">
                             <p className="text-white font-semibold tabular-nums text-sm">
