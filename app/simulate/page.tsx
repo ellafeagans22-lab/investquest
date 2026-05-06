@@ -23,11 +23,14 @@ export default async function SimulatePage() {
     portfolio = data
   }
 
+  const positions = portfolio?.positions ?? []
+  positions.forEach((pos: unknown) => console.log('[portfolio position]', pos))
+
   return (
     <SimulateClient
       userId={user.id}
       initialCash={portfolio?.cash_balance ?? 10000}
-      initialPositions={portfolio?.positions ?? []}
+      initialPositions={positions}
     />
   )
 }

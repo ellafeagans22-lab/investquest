@@ -15,7 +15,7 @@ const STOCK_META: Record<string, string> = {
 
 const TICKERS = ['AAPL', 'TSLA', 'GOOGL', 'MSFT', 'AMZN']
 
-type Position = { ticker: string; shares: number; price: number; purchasePrice: number }
+type Position = { ticker: string; shares: number; price: number; purchasePrice?: number }
 type ModalTarget = { ticker: string; name: string; price: number; mode: 'buy' | 'sell'; maxShares?: number }
 
 function fmt(n: number) {
@@ -99,7 +99,7 @@ export default function SimulateClient({ userId, initialCash, initialPositions }
         ? portfolio.map((p) => {
             if (p.ticker !== modal.ticker) return p
             const newShares = p.shares + shareCount
-            const newAvgPrice = (p.shares * p.purchasePrice + shareCount * modal.price) / newShares
+            const newAvgPrice = (p.shares * (p.purchasePrice ?? p.price ?? 0) + shareCount * modal.price) / newShares
             return { ...p, shares: newShares, price: newAvgPrice, purchasePrice: newAvgPrice }
           })
         : [...portfolio, { ticker: modal.ticker, shares: shareCount, price: modal.price, purchasePrice: modal.price }]
@@ -143,7 +143,7 @@ export default function SimulateClient({ userId, initialCash, initialPositions }
             {/* Summary card */}
             {(() => {
               const positionsValue = portfolio.reduce((sum, pos) => {
-                const currentPrice = prices.find((p) => p.ticker === pos.ticker)?.price ?? pos.purchasePrice
+                const currentPrice = prices.find((p) => p.ticker === pos.ticker)?.price ?? pos.purchasePrice ?? pos.price ?? 0
                 return sum + pos.shares * currentPrice
               }, 0)
               const totalValue = cash + positionsValue
@@ -194,9 +194,10 @@ export default function SimulateClient({ userId, initialCash, initialPositions }
               ) : (
                 <ul className="flex flex-col divide-y divide-white/5">
                   {portfolio.map((pos) => {
-                    const currentPrice = prices.find((p) => p.ticker === pos.ticker)?.price ?? pos.purchasePrice
-                    const unrealizedGL = (currentPrice - pos.purchasePrice) * pos.shares
-                    const pctChange = ((currentPrice - pos.purchasePrice) / pos.purchasePrice) * 100
+                    const costBasis = pos.purchasePrice ?? pos.price ?? 0
+                    const currentPrice = prices.find((p) => p.ticker === pos.ticker)?.price ?? costBasis
+                    const unrealizedGL = (currentPrice - costBasis) * pos.shares
+                    const pctChange = costBasis > 0 ? ((currentPrice - costBasis) / costBasis) * 100 : 0
                     const up = unrealizedGL >= 0
                     return (
                       <li key={pos.ticker} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
