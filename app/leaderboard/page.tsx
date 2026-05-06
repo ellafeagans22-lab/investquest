@@ -1,6 +1,7 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import BottomNav from '@/components/BottomNav'
+import { getStockPrices, type StockPrice } from '@/lib/getStockPrices'
 
 const medals = ['🥇', '🥈', '🥉']
 
@@ -16,11 +17,26 @@ export default async function LeaderboardPage() {
 
   if (!user) redirect('/login')
 
-  const { data: rows } = await supabase
-    .from('leaderboard')
-    .select('user_id, display_name, total_value')
+  type RawPosition = { ticker: string; shares: number; price: number; purchasePrice?: number }
 
-  const entries = rows ?? []
+  const [{ data: rows }, { data: portfolios }, livePrices] = await Promise.all([
+    supabase.from('leaderboard').select('user_id, display_name'),
+    supabase.from('portfolios').select('user_id, cash_balance, positions'),
+    getStockPrices().catch(() => [] as StockPrice[]),
+  ])
+
+  const entries = (rows ?? [])
+    .map((row) => {
+      const portfolio = (portfolios ?? []).find((p) => p.user_id === row.user_id)
+      const cash: number = portfolio?.cash_balance ?? 0
+      const positions: RawPosition[] = portfolio?.positions ?? []
+      const positionsValue = positions.reduce((sum, pos) => {
+        const livePrice = livePrices.find((p) => p.ticker === pos.ticker)?.price ?? pos.purchasePrice ?? pos.price ?? 0
+        return sum + pos.shares * livePrice
+      }, 0)
+      return { user_id: row.user_id, display_name: row.display_name, total_value: cash + positionsValue }
+    })
+    .sort((a, b) => b.total_value - a.total_value)
 
   return (
     <div className="flex flex-col min-h-screen bg-navy">

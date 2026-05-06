@@ -1,9 +1,5 @@
-export type StockPrice = {
-  ticker: string
-  price: number
-  change: number
-  changePercent: number
-}
+export type { StockPrice } from './getStockPrices'
+import type { StockPrice } from './getStockPrices'
 
 export async function fetchLivePrices(): Promise<StockPrice[]> {
   const res = await fetch('/api/stocks', { cache: 'no-store' })
