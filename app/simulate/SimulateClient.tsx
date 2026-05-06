@@ -22,13 +22,38 @@ function fmt(n: number) {
   return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
+function Sparkline({ values }: { values: number[] }) {
+  if (values.length < 2) return null
+  const w = 80, h = 24
+  const min = Math.min(...values)
+  const max = Math.max(...values)
+  const range = max - min || 1
+  const points = values
+    .map((v, i) => `${(i / (values.length - 1)) * w},${h - ((v - min) / range) * h}`)
+    .join(' ')
+  const up = values[values.length - 1] >= values[0]
+  return (
+    <svg width={w} height={h}>
+      <polyline
+        points={points}
+        fill="none"
+        stroke={up ? '#4ade80' : '#f87171'}
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
 interface Props {
   userId: string
   initialCash: number
   initialPositions: Position[]
+  initialPriceHistory: Record<string, number[]>
 }
 
-export default function SimulateClient({ userId, initialCash, initialPositions }: Props) {
+export default function SimulateClient({ userId, initialCash, initialPositions, initialPriceHistory }: Props) {
   const [cash, setCash] = useState(initialCash)
   const [portfolio, setPortfolio] = useState<Position[]>(initialPositions)
   const [modal, setModal] = useState<ModalTarget | null>(null)
@@ -36,6 +61,25 @@ export default function SimulateClient({ userId, initialCash, initialPositions }
   const [prices, setPrices] = useState<StockPrice[]>([])
   const [loadingPrices, setLoadingPrices] = useState(true)
   const [lastFetched, setLastFetched] = useState<Date | null>(null)
+  const [priceHistory, setPriceHistory] = useState<Record<string, number[]>>(initialPriceHistory)
+
+  async function fetchHistory(): Promise<Record<string, number[]>> {
+    const supabase = createClient()
+    const { data } = await supabase
+      .from('price_history')
+      .select('ticker, price')
+      .order('created_at', { ascending: false })
+      .limit(100)
+    const history: Record<string, number[]> = {}
+    for (const ticker of TICKERS) {
+      history[ticker] = (data ?? [])
+        .filter((r) => r.ticker === ticker)
+        .slice(0, 10)
+        .reverse()
+        .map((r) => r.price)
+    }
+    return history
+  }
 
   async function refreshPrices() {
     setLoadingPrices(true)
@@ -44,6 +88,8 @@ export default function SimulateClient({ userId, initialCash, initialPositions }
       setPrices(data)
       setLastFetched(new Date())
       console.log(prices)
+      const history = await fetchHistory()
+      setPriceHistory(history)
     } catch {
       // keep existing prices on error
     } finally {
@@ -282,6 +328,7 @@ export default function SimulateClient({ userId, initialCash, initialPositions }
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
+                          <Sparkline values={priceHistory[ticker] ?? []} />
                           <div className="text-right">
                             <p className="text-white font-semibold tabular-nums text-sm">
                               {live ? `$${live.price.toFixed(2)}` : '—'}

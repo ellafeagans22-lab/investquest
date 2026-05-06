@@ -26,11 +26,28 @@ export default async function SimulatePage() {
   const positions = portfolio?.positions ?? []
   positions.forEach((pos: unknown) => console.log('[portfolio position]', pos))
 
+  const { data: historyRows } = await supabase
+    .from('price_history')
+    .select('ticker, price')
+    .order('created_at', { ascending: false })
+    .limit(100)
+
+  const TICKERS = ['AAPL', 'TSLA', 'GOOGL', 'MSFT', 'AMZN']
+  const initialPriceHistory: Record<string, number[]> = {}
+  for (const ticker of TICKERS) {
+    initialPriceHistory[ticker] = (historyRows ?? [])
+      .filter((r) => r.ticker === ticker)
+      .slice(0, 10)
+      .reverse()
+      .map((r) => r.price)
+  }
+
   return (
     <SimulateClient
       userId={user.id}
       initialCash={portfolio?.cash_balance ?? 10000}
       initialPositions={positions}
+      initialPriceHistory={initialPriceHistory}
     />
   )
 }
