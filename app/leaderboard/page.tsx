@@ -38,6 +38,28 @@ export default async function LeaderboardPage() {
     })
     .sort((a, b) => b.total_value - a.total_value)
 
+  const myEntry = entries.find((e) => e.user_id === user.id)
+  const myTotal = myEntry?.total_value ?? STARTING_BALANCE
+  const myGainPct = ((myTotal - STARTING_BALANCE) / STARTING_BALANCE) * 100
+
+  type LeagueTier = { name: string; emoji: string; min: number; max: number | null; barColor: string; bgClass: string }
+  const LEAGUES: LeagueTier[] = [
+    { name: 'Bronze League',  emoji: '🥉', min: -Infinity, max: 0,    barColor: '#92400e', bgClass: 'from-amber-900/40 to-amber-800/10 border-amber-700/40' },
+    { name: 'Silver League',  emoji: '🥈', min: 0,         max: 5,    barColor: '#94a3b8', bgClass: 'from-slate-500/30 to-slate-400/10 border-slate-400/30' },
+    { name: 'Gold League',    emoji: '🥇', min: 5,         max: 15,   barColor: '#F59E0B', bgClass: 'from-amber-500/25 to-amber-400/10 border-amber-400/30' },
+    { name: 'Diamond League', emoji: '💎', min: 15,        max: null,  barColor: '#38bdf8', bgClass: 'from-sky-500/25 to-sky-400/10 border-sky-400/30' },
+  ]
+  const currentLeague = LEAGUES.findLast((l) => myGainPct >= l.min) ?? LEAGUES[0]
+  const nextLeague = currentLeague.max !== null ? LEAGUES[LEAGUES.indexOf(currentLeague) + 1] : null
+
+  const BRONZE_FLOOR = -20
+  const progressPct = nextLeague === null
+    ? 100
+    : currentLeague.name === 'Bronze League'
+      ? Math.max(0, Math.min(100, ((myGainPct - BRONZE_FLOOR) / (0 - BRONZE_FLOOR)) * 100))
+      : Math.min(100, ((myGainPct - currentLeague.min) / (currentLeague.max! - currentLeague.min)) * 100)
+  const pctToNext = nextLeague ? Math.max(0, (nextLeague.min - myGainPct)).toFixed(1) : null
+
   return (
     <div className="flex flex-col min-h-screen bg-navy">
       {/* Navbar */}
@@ -58,6 +80,47 @@ export default async function LeaderboardPage() {
             Rankings
           </p>
           <h1 className="text-3xl font-bold text-white mb-8">Leaderboard</h1>
+
+          {/* League banner */}
+          <div className={`bg-gradient-to-br ${currentLeague.bgClass} border rounded-2xl px-6 py-5 mb-6`}>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <span className="text-4xl leading-none">{currentLeague.emoji}</span>
+                <div>
+                  <p className="text-white font-bold text-lg leading-tight">{currentLeague.name}</p>
+                  <p className="text-white/40 text-xs">
+                    {myGainPct >= 0 ? '+' : ''}{myGainPct.toFixed(2)}% return
+                  </p>
+                </div>
+              </div>
+              {nextLeague ? (
+                <div className="text-right">
+                  <p className="text-white/30 text-xs font-medium">Next tier</p>
+                  <p className="text-white/60 text-sm font-semibold">
+                    {nextLeague.emoji} {nextLeague.name.replace(' League', '')}
+                  </p>
+                  <p className="text-white/30 text-xs">+{pctToNext}% to go</p>
+                </div>
+              ) : (
+                <div className="text-right">
+                  <p className="text-sky-400 text-xs font-bold uppercase tracking-widest">Max tier</p>
+                </div>
+              )}
+            </div>
+            {/* Progress bar */}
+            <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all"
+                style={{ width: `${progressPct}%`, backgroundColor: currentLeague.barColor }}
+              />
+            </div>
+            {nextLeague && (
+              <div className="flex justify-between mt-1.5">
+                <span className="text-white/20 text-[10px]">{currentLeague.name.replace(' League', '')}</span>
+                <span className="text-white/20 text-[10px]">{nextLeague.name.replace(' League', '')}</span>
+              </div>
+            )}
+          </div>
 
           {entries.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 gap-3">
