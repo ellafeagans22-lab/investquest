@@ -172,6 +172,30 @@ export default function SimulateClient({ userId, initialCash, initialPositions, 
     setPortfolio(newPositions)
     closeModal()
     await persist(newCash, newPositions)
+
+    const supabase = createClient()
+
+    const txPayload = {
+      user_id: userId,
+      ticker: modal.ticker,
+      action: modal.mode,
+      shares: shareCount,
+      price_per_share: modal.price,
+      total_value: tradeValue,
+    }
+    console.log('[transaction insert payload]', txPayload)
+    const { error: txErr } = await supabase.from('transactions').insert(txPayload)
+    if (txErr) console.error('[transaction insert error]', txErr)
+
+    const snapshotValue = newCash + newPositions.reduce((sum, pos) => {
+      const livePrice = prices.find((p) => p.ticker === pos.ticker)?.price
+      const price = livePrice ?? pos.purchasePrice ?? pos.price
+      return sum + pos.shares * price
+    }, 0)
+    const snapshotPayload = { user_id: userId, total_value: snapshotValue }
+    console.log('[snapshot insert payload]', snapshotPayload)
+    const { error: snapshotErr } = await supabase.from('portfolio_snapshots').insert(snapshotPayload)
+    if (snapshotErr) console.error('[snapshot insert error]', snapshotErr)
   }
 
   return (
