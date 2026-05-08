@@ -48,13 +48,18 @@ export default async function SimulatePage() {
   }, 0)
   const initialTotalValue = cash + positionsValue
 
-  const { data: transactions } = await supabase
-    .from('transactions')
-    .select('id, ticker, action, shares, price_per_share, total_value, created_at')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
-
-  console.log('[transactions] user_id:', user.id, 'rows:', transactions ?? [])
+  const [{ data: transactions }, { data: snapshots }] = await Promise.all([
+    supabase
+      .from('transactions')
+      .select('id, ticker, action, shares, price_per_share, total_value, created_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('portfolio_snapshots')
+      .select('total_value, recorded_at')
+      .eq('user_id', user.id)
+      .order('recorded_at', { ascending: true }),
+  ])
 
   return (
     <SimulateClient
@@ -64,6 +69,7 @@ export default async function SimulatePage() {
       initialPriceHistory={initialPriceHistory}
       initialTransactions={transactions ?? []}
       initialTotalValue={initialTotalValue}
+      initialSnapshots={snapshots ?? []}
     />
   )
 }

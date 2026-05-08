@@ -5,6 +5,7 @@ import Link from 'next/link'
 import BottomNav from '@/components/BottomNav'
 import { createClient } from '@/lib/supabase-browser'
 import { fetchLivePrices, type StockPrice } from '@/lib/stockPrices'
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip } from 'recharts'
 
 const STOCK_META: Record<string, string> = {
   AAPL: 'Apple Inc.',
@@ -27,6 +28,7 @@ type Transaction = {
   total_value: number
   created_at: string
 }
+type Snapshot = { total_value: number; recorded_at: string }
 
 function fmt(n: number) {
   return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -65,9 +67,10 @@ interface Props {
   initialPriceHistory: Record<string, number[]>
   initialTransactions: Transaction[]
   initialTotalValue: number
+  initialSnapshots: Snapshot[]
 }
 
-export default function SimulateClient({ userId, initialCash, initialPositions, initialPriceHistory, initialTransactions, initialTotalValue }: Props) {
+export default function SimulateClient({ userId, initialCash, initialPositions, initialPriceHistory, initialTransactions, initialTotalValue, initialSnapshots }: Props) {
   const [cash, setCash] = useState(initialCash)
   const [portfolio, setPortfolio] = useState<Position[]>(initialPositions)
   const [modal, setModal] = useState<ModalTarget | null>(null)
@@ -223,6 +226,50 @@ export default function SimulateClient({ userId, initialCash, initialPositions, 
                 </div>
               )
             })()}
+
+            {/* Portfolio value chart */}
+            {initialSnapshots.length >= 2 && (
+              <div className="bg-white/5 border border-white/10 rounded-2xl px-6 py-5">
+                <p className="text-xs text-white/50 font-semibold uppercase tracking-widest mb-4">
+                  Value Over Time
+                </p>
+                <ResponsiveContainer width="100%" height={140}>
+                  <LineChart data={initialSnapshots} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+                    <XAxis
+                      dataKey="recorded_at"
+                      tickFormatter={(v) => new Date(v).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                      tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }}
+                      axisLine={false}
+                      tickLine={false}
+                      interval="preserveStartEnd"
+                    />
+                    <YAxis
+                      tickFormatter={(v) => `$${(v as number).toLocaleString('en-US', { maximumFractionDigits: 0 })}`}
+                      tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }}
+                      axisLine={false}
+                      tickLine={false}
+                      width={64}
+                      domain={['auto', 'auto']}
+                    />
+                    <Tooltip
+                      contentStyle={{ background: '#0F2137', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, fontSize: 12 }}
+                      labelStyle={{ color: 'rgba(255,255,255,0.4)', marginBottom: 4 }}
+                      itemStyle={{ color: '#F59E0B', fontWeight: 600 }}
+                      labelFormatter={(v) => new Date(v as string).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                      formatter={(v) => [`$${Number(v).toFixed(2)}`, 'Portfolio']}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="total_value"
+                      stroke="#F59E0B"
+                      strokeWidth={2}
+                      dot={false}
+                      activeDot={{ r: 4, fill: '#F59E0B' }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
 
             {/* Cash balance card */}
             <div className="bg-white/5 border border-white/10 rounded-2xl px-6 py-5 flex items-center justify-between">
