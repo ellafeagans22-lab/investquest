@@ -56,7 +56,13 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
   ])
 
   const prices = (historyRows ?? []).reverse()
-  const currentPrice = historyRows?.[0]?.price ?? null
+  const currentPrice = prices[prices.length - 1]?.price ?? null
+  const previousPrice = prices[prices.length - 2]?.price ?? null
+  const priceChange = currentPrice != null && previousPrice != null ? currentPrice - previousPrice : null
+  const priceChangePct = priceChange != null && previousPrice != null && previousPrice > 0
+    ? (priceChange / previousPrice) * 100
+    : null
+  const up = priceChange != null && priceChange >= 0
 
   const positions: Position[] = portfolio?.positions ?? []
   const position = positions.find((p) => p.ticker === ticker) ?? null
@@ -97,9 +103,26 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
           </Link>
 
           <div>
-            <p className="text-gold text-sm font-semibold uppercase tracking-widest mb-1">Stock Detail</p>
-            <h1 className="text-5xl font-bold text-white">{ticker}</h1>
-            {company && <p className="text-white/40 text-sm mt-1">{company.name}</p>}
+            <p className="text-gold text-sm font-semibold uppercase tracking-widest mb-3">Stock Detail</p>
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-11 h-11 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0">
+                <span className="text-gold text-xs font-bold">{ticker.slice(0, 3)}</span>
+              </div>
+              <div>
+                <h1 className="text-4xl font-bold text-white leading-none">{ticker}</h1>
+                {company && <p className="text-white/40 text-sm mt-0.5">{company.name}</p>}
+              </div>
+            </div>
+            {currentPrice != null && (
+              <div className="flex items-baseline gap-3">
+                <span className="text-4xl font-bold text-white tabular-nums">${fmt(currentPrice)}</span>
+                {priceChange != null && priceChangePct != null && (
+                  <span className={`text-base font-semibold tabular-nums ${up ? 'text-green-400' : 'text-red-400'}`}>
+                    {up ? '+' : '−'}${fmt(Math.abs(priceChange))} ({up ? '+' : '−'}{Math.abs(priceChangePct).toFixed(2)}%)
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Chart */}
