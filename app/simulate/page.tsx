@@ -48,7 +48,7 @@ export default async function SimulatePage() {
   }, 0)
   const initialTotalValue = cash + positionsValue
 
-  const [{ data: transactions }, { data: snapshots }] = await Promise.all([
+  const [{ data: transactions }, { data: snapshots, error: snapshotsErr }] = await Promise.all([
     supabase
       .from('transactions')
       .select('id, ticker, action, shares, price_per_share, total_value, created_at')
@@ -60,6 +60,8 @@ export default async function SimulatePage() {
       .eq('user_id', user.id)
       .order('recorded_at', { ascending: true }),
   ])
+
+  console.log('[snapshots] user_id:', user.id, 'rows:', snapshots ?? [], 'error:', snapshotsErr)
 
   return (
     <SimulateClient
