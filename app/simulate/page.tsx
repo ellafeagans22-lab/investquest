@@ -44,6 +44,8 @@ export default async function SimulatePage() {
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
 
+  console.log('[transactions] user_id:', user.id, 'rows:', transactions ?? [])
+
   return (
     <SimulateClient
       userId={user.id}
