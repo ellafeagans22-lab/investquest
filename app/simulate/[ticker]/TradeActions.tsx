@@ -91,6 +91,15 @@ export default function TradeActions({ ticker, currentPrice, sharesOwned, userId
 
       if (saveErr) throw new Error('Failed to save trade')
 
+      await supabase.from('transactions').insert({
+        user_id: userId,
+        ticker,
+        action: mode,
+        shares: shareCount,
+        price_per_share: currentPrice,
+        total_value: tradeValue,
+      })
+
       close()
       router.refresh()
     } catch (err) {
