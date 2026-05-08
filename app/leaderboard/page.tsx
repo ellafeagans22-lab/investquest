@@ -2,6 +2,7 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import BottomNav from '@/components/BottomNav'
 import { getStockPrices, type StockPrice } from '@/lib/getStockPrices'
+import ShareButton from './ShareButton'
 
 const medals = ['🥇', '🥈', '🥉']
 
@@ -38,6 +39,7 @@ export default async function LeaderboardPage() {
     })
     .sort((a, b) => b.total_value - a.total_value)
 
+  const myRank = entries.findIndex((e) => e.user_id === user.id) + 1
   const myEntry = entries.find((e) => e.user_id === user.id)
   const myTotal = myEntry?.total_value ?? STARTING_BALANCE
   const myGainPct = ((myTotal - STARTING_BALANCE) / STARTING_BALANCE) * 100
@@ -193,6 +195,26 @@ export default async function LeaderboardPage() {
                 )
               })}
             </ol>
+          )}
+
+          {/* Challenge a Friend */}
+          {myRank > 0 && (
+            <div className="mt-6 bg-white/5 border border-gold/20 rounded-2xl px-6 py-5 flex flex-col gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-gold">
+                    <path d="M3.478 2.405a.75.75 0 0 0-.926.94l2.432 7.905H13.5a.75.75 0 0 1 0 1.5H4.984l-2.432 7.905a.75.75 0 0 0 .926.94 60.519 60.519 0 0 0 18.445-8.986.75.75 0 0 0 0-1.218A60.517 60.517 0 0 0 3.478 2.405Z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-white font-semibold text-sm">Challenge a Friend</p>
+                  <p className="text-white/40 text-xs">
+                    You&apos;re ranked #{myRank} — invite friends to compete
+                  </p>
+                </div>
+              </div>
+              <ShareButton rank={myRank} gainPct={myGainPct} />
+            </div>
           )}
         </div>
       </main>
