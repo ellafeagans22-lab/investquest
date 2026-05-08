@@ -56,9 +56,9 @@ export default async function SimulatePage() {
       .order('created_at', { ascending: false }),
     supabase
       .from('portfolio_snapshots')
-      .select('total_value, recorded_at')
+      .select('total_value, created_at')
       .eq('user_id', user.id)
-      .order('recorded_at', { ascending: true }),
+      .order('created_at', { ascending: true }),
   ])
 
   console.log('[snapshots]', { rows: snapshots, error: snapshotsErr })

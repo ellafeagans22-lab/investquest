@@ -28,7 +28,7 @@ type Transaction = {
   total_value: number
   created_at: string
 }
-type Snapshot = { total_value: number; recorded_at: string }
+type Snapshot = { total_value: number; created_at: string }
 
 function fmt(n: number) {
   return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -236,7 +236,7 @@ export default function SimulateClient({ userId, initialCash, initialPositions, 
                 <ResponsiveContainer width="100%" height={140}>
                   <LineChart data={initialSnapshots} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
                     <XAxis
-                      dataKey="recorded_at"
+                      dataKey="created_at"
                       tickFormatter={(v) => new Date(v).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
                       tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }}
                       axisLine={false}
