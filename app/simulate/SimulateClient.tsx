@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import BottomNav from '@/components/BottomNav'
 import { createClient } from '@/lib/supabase-browser'
 import { fetchLivePrices, type StockPrice } from '@/lib/stockPrices'
@@ -314,36 +315,45 @@ export default function SimulateClient({ userId, initialCash, initialPositions, 
                     const live = prices.find((p) => p.ticker === ticker)
                     const up = (live?.change ?? 0) >= 0
                     return (
-                      <li key={ticker} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-lg bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0">
-                            <span className="text-gold text-[10px] font-bold">{ticker.slice(0, 3)}</span>
+                      <li key={ticker} className="first:pt-0 last:pb-0">
+                        <Link
+                          href={`/simulate/${ticker}`}
+                          className="flex items-center justify-between py-3 hover:bg-white/5 -mx-2 px-2 rounded-xl transition-colors"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-lg bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0">
+                              <span className="text-gold text-[10px] font-bold">{ticker.slice(0, 3)}</span>
+                            </div>
+                            <div>
+                              <p className="text-white text-sm font-semibold">{ticker}</p>
+                              <p className="text-white/40 text-xs">{STOCK_META[ticker]}</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-white text-sm font-semibold">{ticker}</p>
-                            <p className="text-white/40 text-xs">{STOCK_META[ticker]}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <Sparkline values={priceHistory[ticker] ?? []} />
-                          <div className="text-right">
-                            <p className="text-white font-semibold tabular-nums text-sm">
-                              {live ? `$${live.price.toFixed(2)}` : '—'}
-                            </p>
-                            {live && (
-                              <p className={`text-xs tabular-nums ${up ? 'text-green-400' : 'text-red-400'}`}>
-                                {up ? '+' : ''}{live.change.toFixed(2)} ({up ? '+' : ''}{live.changePercent.toFixed(2)}%)
+                          <div className="flex items-center gap-3">
+                            <Sparkline values={priceHistory[ticker] ?? []} />
+                            <div className="text-right">
+                              <p className="text-white font-semibold tabular-nums text-sm">
+                                {live ? `$${live.price.toFixed(2)}` : '—'}
                               </p>
-                            )}
+                              {live && (
+                                <p className={`text-xs tabular-nums ${up ? 'text-green-400' : 'text-red-400'}`}>
+                                  {up ? '+' : ''}{live.change.toFixed(2)} ({up ? '+' : ''}{live.changePercent.toFixed(2)}%)
+                                </p>
+                              )}
+                            </div>
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                if (live) openBuy({ ticker, name: STOCK_META[ticker], price: live.price })
+                              }}
+                              disabled={!live || loadingPrices}
+                              className="px-3 py-1.5 rounded-lg bg-gold text-navy text-xs font-bold hover:opacity-90 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
+                            >
+                              Buy
+                            </button>
                           </div>
-                          <button
-                            onClick={() => live && openBuy({ ticker, name: STOCK_META[ticker], price: live.price })}
-                            disabled={!live || loadingPrices}
-                            className="px-3 py-1.5 rounded-lg bg-gold text-navy text-xs font-bold hover:opacity-90 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
-                          >
-                            Buy
-                          </button>
-                        </div>
+                        </Link>
                       </li>
                     )
                   })}
