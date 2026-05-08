@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 
 type Position = { ticker: string; shares: number; price: number; purchasePrice?: number }
@@ -17,6 +18,7 @@ function fmt(n: number) {
 }
 
 export default function TradeActions({ ticker, currentPrice, sharesOwned, userId }: Props) {
+  const router = useRouter()
   const [mode, setMode] = useState<'buy' | 'sell' | null>(null)
   const [shareInput, setShareInput] = useState('1')
   const [confirming, setConfirming] = useState(false)
@@ -90,6 +92,7 @@ export default function TradeActions({ ticker, currentPrice, sharesOwned, userId
       if (saveErr) throw new Error('Failed to save trade')
 
       close()
+      router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
     } finally {
