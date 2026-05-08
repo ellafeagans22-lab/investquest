@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import BottomNav from '@/components/BottomNav'
+import StockChart from './StockChart'
 
 export default async function StockDetailPage({ params }: { params: Promise<{ ticker: string }> }) {
   const { ticker } = await params
@@ -9,6 +10,15 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+
+  const { data: historyRows } = await supabase
+    .from('price_history')
+    .select('price, fetched_at')
+    .eq('ticker', ticker.toUpperCase())
+    .order('fetched_at', { ascending: false })
+    .limit(50)
+
+  const prices = (historyRows ?? []).reverse()
 
   return (
     <div className="flex flex-col min-h-screen bg-navy">
@@ -41,9 +51,8 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
           </p>
           <h1 className="text-5xl font-bold text-white mb-2">{ticker.toUpperCase()}</h1>
 
-          {/* Chart placeholder */}
-          <div className="mt-8 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center h-48">
-            <p className="text-white/30 text-sm font-medium">Chart coming soon</p>
+          <div className="mt-8">
+            <StockChart ticker={ticker.toUpperCase()} prices={prices} />
           </div>
         </div>
       </main>
