@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import BottomNav from '@/components/BottomNav'
 import StockChart from './StockChart'
+import TradeActions from './TradeActions'
 
 const COMPANY_INFO: Record<string, { name: string; description: string }> = {
   AAPL: {
@@ -172,19 +173,11 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
         </div>
       </main>
 
-      {/* Action bar */}
-      <div className="fixed bottom-16 left-0 right-0 z-40 px-4 py-3 bg-navy/95 backdrop-blur border-t border-white/10">
-        <div className="max-w-2xl mx-auto flex gap-3">
-          <button className="flex-1 py-3 rounded-xl bg-gold text-navy text-sm font-bold hover:opacity-90 transition-opacity">
-            Buy {ticker}
-          </button>
-          {position && (
-            <button className="flex-1 py-3 rounded-xl border border-white/20 text-white/70 text-sm font-bold hover:bg-white/5 transition-colors">
-              Sell {ticker}
-            </button>
-          )}
-        </div>
-      </div>
+      <TradeActions
+        ticker={ticker}
+        currentPrice={currentPrice}
+        sharesOwned={position?.shares ?? null}
+      />
 
       <BottomNav />
     </div>
