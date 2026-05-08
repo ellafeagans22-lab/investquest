@@ -33,10 +33,20 @@ export default async function SimulatePage() {
 
   const TICKERS = ['AAPL', 'TSLA', 'GOOGL', 'MSFT', 'AMZN']
   const initialPriceHistory: Record<string, number[]> = {}
+  const latestPriceByTicker: Record<string, number> = {}
   for (const ticker of TICKERS) {
     const rows = (historyRows ?? []).filter((r) => r.ticker === ticker)
     initialPriceHistory[ticker] = rows.slice(-10).map((r) => r.price)
+    if (rows.length > 0) latestPriceByTicker[ticker] = rows[rows.length - 1].price
   }
+
+  type RawPosition = { ticker: string; shares: number; price: number; purchasePrice?: number }
+  const cash = portfolio?.cash_balance ?? 10000
+  const positionsValue = (positions as RawPosition[]).reduce((sum, pos) => {
+    const price = latestPriceByTicker[pos.ticker] ?? pos.purchasePrice ?? pos.price ?? 0
+    return sum + pos.shares * price
+  }, 0)
+  const initialTotalValue = cash + positionsValue
 
   const { data: transactions } = await supabase
     .from('transactions')
@@ -53,6 +63,7 @@ export default async function SimulatePage() {
       initialPositions={positions}
       initialPriceHistory={initialPriceHistory}
       initialTransactions={transactions ?? []}
+      initialTotalValue={initialTotalValue}
     />
   )
 }

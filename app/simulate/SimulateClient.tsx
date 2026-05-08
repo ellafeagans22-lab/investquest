@@ -64,9 +64,10 @@ interface Props {
   initialPositions: Position[]
   initialPriceHistory: Record<string, number[]>
   initialTransactions: Transaction[]
+  initialTotalValue: number
 }
 
-export default function SimulateClient({ userId, initialCash, initialPositions, initialPriceHistory, initialTransactions }: Props) {
+export default function SimulateClient({ userId, initialCash, initialPositions, initialPriceHistory, initialTransactions, initialTotalValue }: Props) {
   const [cash, setCash] = useState(initialCash)
   const [portfolio, setPortfolio] = useState<Position[]>(initialPositions)
   const [modal, setModal] = useState<ModalTarget | null>(null)
@@ -194,25 +195,31 @@ export default function SimulateClient({ userId, initialCash, initialPositions, 
           </h1>
 
           <div className="flex flex-col gap-4">
-            {/* Summary card */}
+            {/* Portfolio value hero */}
             {(() => {
-              const positionsValue = portfolio.reduce((sum, pos) => {
-                const currentPrice = prices.find((p) => p.ticker === pos.ticker)?.price ?? pos.purchasePrice ?? pos.price ?? 0
-                return sum + pos.shares * currentPrice
-              }, 0)
-              const totalValue = cash + positionsValue
-              const totalGL = totalValue - 10_000
+              const liveTotalValue = prices.length > 0
+                ? cash + portfolio.reduce((sum, pos) => {
+                    const currentPrice = prices.find((p) => p.ticker === pos.ticker)?.price ?? pos.purchasePrice ?? pos.price ?? 0
+                    return sum + pos.shares * currentPrice
+                  }, 0)
+                : initialTotalValue
+              const totalGL = liveTotalValue - 10_000
               const pctReturn = (totalGL / 10_000) * 100
               const up = totalGL >= 0
               return (
-                <div className="bg-white/5 border border-white/10 rounded-2xl px-6 py-5">
-                  <p className="text-xs text-white/50 font-semibold uppercase tracking-widest mb-3">
-                    Total Portfolio
+                <div className="bg-gradient-to-br from-white/10 to-white/5 border border-white/10 rounded-2xl px-6 py-6">
+                  <p className="text-xs text-white/50 font-semibold uppercase tracking-widest mb-2">
+                    Portfolio Value
                   </p>
-                  <p className="text-3xl font-bold text-white mb-1">${fmt(totalValue)}</p>
-                  <p className={`text-sm font-semibold tabular-nums ${up ? 'text-green-400' : 'text-red-400'}`}>
-                    {up ? '+' : ''}{fmt(totalGL)} ({up ? '+' : ''}{pctReturn.toFixed(2)}%) vs $10,000 start
+                  <p className="text-5xl font-bold text-white tabular-nums leading-none mb-3">
+                    ${fmt(liveTotalValue)}
                   </p>
+                  <div className="flex items-center gap-2">
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-sm font-bold tabular-nums ${up ? 'bg-green-400/15 text-green-400' : 'bg-red-400/15 text-red-400'}`}>
+                      {up ? '+' : '−'}${fmt(Math.abs(totalGL))} ({up ? '+' : '−'}{Math.abs(pctReturn).toFixed(2)}%)
+                    </span>
+                    <span className="text-white/30 text-xs">vs $10,000 start</span>
+                  </div>
                 </div>
               )
             })()}
