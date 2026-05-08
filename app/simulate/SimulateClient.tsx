@@ -385,9 +385,6 @@ export default function SimulateClient({ userId, initialCash, initialPositions, 
                 <ul className="flex flex-col divide-y divide-white/5">
                   {initialTransactions.map((tx) => {
                     const buy = tx.action === 'buy'
-                    const ts = new Date(tx.created_at).toLocaleString('en-US', {
-                      month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
-                    })
                     return (
                       <li key={tx.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
                         <div className="w-9 h-9 rounded-lg bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0">
@@ -406,7 +403,11 @@ export default function SimulateClient({ userId, initialCash, initialPositions, 
                         </div>
                         <div className="text-right shrink-0">
                           <p className="text-white font-semibold tabular-nums text-sm">${fmt(tx.total_value)}</p>
-                          <p className="text-white/30 text-xs">{ts}</p>
+                          <p className="text-white/30 text-xs" suppressHydrationWarning>
+                            {new Date(tx.created_at).toLocaleString('en-US', {
+                              month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
+                            })}
+                          </p>
                         </div>
                       </li>
                     )
