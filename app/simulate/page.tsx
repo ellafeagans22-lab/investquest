@@ -61,7 +61,7 @@ export default async function SimulatePage() {
       .order('recorded_at', { ascending: true }),
   ])
 
-  console.log('[snapshots] user_id:', user.id, 'rows:', snapshots ?? [], 'error:', snapshotsErr)
+  console.log('[snapshots]', { rows: snapshots, error: snapshotsErr })
 
   return (
     <SimulateClient
