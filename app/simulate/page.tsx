@@ -38,12 +38,19 @@ export default async function SimulatePage() {
     initialPriceHistory[ticker] = rows.slice(-10).map((r) => r.price)
   }
 
+  const { data: transactions } = await supabase
+    .from('transactions')
+    .select('id, ticker, action, shares, price_per_share, total_value, created_at')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+
   return (
     <SimulateClient
       userId={user.id}
       initialCash={portfolio?.cash_balance ?? 10000}
       initialPositions={positions}
       initialPriceHistory={initialPriceHistory}
+      initialTransactions={transactions ?? []}
     />
   )
 }

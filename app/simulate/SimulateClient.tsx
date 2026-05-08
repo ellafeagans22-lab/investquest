@@ -18,6 +18,15 @@ const TICKERS = ['AAPL', 'TSLA', 'GOOGL', 'MSFT', 'AMZN']
 
 type Position = { ticker: string; shares: number; price: number; purchasePrice?: number }
 type ModalTarget = { ticker: string; name: string; price: number; mode: 'buy' | 'sell'; maxShares?: number }
+type Transaction = {
+  id: string
+  ticker: string
+  action: string
+  shares: number
+  price_per_share: number
+  total_value: number
+  created_at: string
+}
 
 function fmt(n: number) {
   return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -54,9 +63,10 @@ interface Props {
   initialCash: number
   initialPositions: Position[]
   initialPriceHistory: Record<string, number[]>
+  initialTransactions: Transaction[]
 }
 
-export default function SimulateClient({ userId, initialCash, initialPositions, initialPriceHistory }: Props) {
+export default function SimulateClient({ userId, initialCash, initialPositions, initialPriceHistory, initialTransactions }: Props) {
   const [cash, setCash] = useState(initialCash)
   const [portfolio, setPortfolio] = useState<Position[]>(initialPositions)
   const [modal, setModal] = useState<ModalTarget | null>(null)
@@ -354,6 +364,50 @@ export default function SimulateClient({ userId, initialCash, initialPositions, 
                             </button>
                           </div>
                         </Link>
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
+            </div>
+
+            {/* Transaction history */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl px-6 py-5">
+              <p className="text-xs text-white/50 font-semibold uppercase tracking-widest mb-4">
+                Transaction History
+              </p>
+              {initialTransactions.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-6 gap-2">
+                  <span className="text-3xl">🧾</span>
+                  <p className="text-white/30 text-sm font-medium">No transactions yet</p>
+                </div>
+              ) : (
+                <ul className="flex flex-col divide-y divide-white/5">
+                  {initialTransactions.map((tx) => {
+                    const buy = tx.action === 'buy'
+                    const ts = new Date(tx.created_at).toLocaleString('en-US', {
+                      month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
+                    })
+                    return (
+                      <li key={tx.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
+                        <div className="w-9 h-9 rounded-lg bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0">
+                          <span className="text-gold text-[10px] font-bold">{tx.ticker.slice(0, 3)}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className={`text-xs font-bold uppercase ${buy ? 'text-green-400' : 'text-red-400'}`}>
+                              {tx.action}
+                            </span>
+                            <span className="text-white text-sm font-semibold">{tx.ticker}</span>
+                          </div>
+                          <p className="text-white/40 text-xs">
+                            {tx.shares} {tx.shares === 1 ? 'share' : 'shares'} @ ${fmt(tx.price_per_share)}
+                          </p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-white font-semibold tabular-nums text-sm">${fmt(tx.total_value)}</p>
+                          <p className="text-white/30 text-xs">{ts}</p>
+                        </div>
                       </li>
                     )
                   })}
