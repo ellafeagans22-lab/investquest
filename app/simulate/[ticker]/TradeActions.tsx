@@ -103,6 +103,15 @@ export default function TradeActions({ ticker, currentPrice, sharesOwned, userId
       const { error: txErr } = await supabase.from('transactions').insert(txPayload)
       if (txErr) console.error('[transaction insert error]', txErr)
 
+      const snapshotValue = newCash + newPositions.reduce((sum, pos) => {
+        const price = pos.ticker === ticker ? currentPrice : (pos.purchasePrice ?? pos.price)
+        return sum + pos.shares * price
+      }, 0)
+      const { error: snapshotErr } = await supabase
+        .from('portfolio_snapshots')
+        .insert({ user_id: userId, total_value: snapshotValue })
+      if (snapshotErr) console.error('[snapshot insert error]', snapshotErr)
+
       close()
       router.refresh()
     } catch (err) {
