@@ -177,6 +177,7 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
         ticker={ticker}
         currentPrice={currentPrice}
         sharesOwned={position?.shares ?? null}
+        userId={user.id}
       />
 
       <BottomNav />

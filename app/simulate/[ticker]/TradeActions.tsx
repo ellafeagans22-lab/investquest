@@ -1,33 +1,100 @@
 'use client'
 
 import { useState } from 'react'
+import { createClient } from '@/lib/supabase-browser'
+
+type Position = { ticker: string; shares: number; price: number; purchasePrice?: number }
 
 interface Props {
   ticker: string
   currentPrice: number | null
   sharesOwned: number | null
+  userId: string
 }
 
 function fmt(n: number) {
   return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
-export default function TradeActions({ ticker, currentPrice, sharesOwned }: Props) {
+export default function TradeActions({ ticker, currentPrice, sharesOwned, userId }: Props) {
   const [mode, setMode] = useState<'buy' | 'sell' | null>(null)
   const [shareInput, setShareInput] = useState('1')
+  const [confirming, setConfirming] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const shareCount = Math.max(0, parseInt(shareInput, 10) || 0)
   const total = currentPrice != null ? shareCount * currentPrice : 0
   const overShares = mode === 'sell' && sharesOwned != null && shareCount > sharesOwned
-  const canConfirm = shareCount > 0 && !overShares
+  const canConfirm = shareCount > 0 && !overShares && currentPrice != null && !confirming
 
   function open(m: 'buy' | 'sell') {
     setShareInput('1')
+    setError(null)
     setMode(m)
   }
 
   function close() {
+    if (confirming) return
     setMode(null)
+    setError(null)
+  }
+
+  async function confirmTrade() {
+    if (!canConfirm || !mode || currentPrice == null) return
+    setConfirming(true)
+    setError(null)
+
+    try {
+      const supabase = createClient()
+
+      const { data: portfolio, error: fetchErr } = await supabase
+        .from('portfolios')
+        .select('cash_balance, positions')
+        .eq('user_id', userId)
+        .single()
+
+      if (fetchErr || !portfolio) throw new Error('Could not load portfolio')
+
+      const cash: number = portfolio.cash_balance
+      const positions: Position[] = portfolio.positions ?? []
+      const tradeValue = shareCount * currentPrice
+      let newCash: number
+      let newPositions: Position[]
+
+      if (mode === 'buy') {
+        if (tradeValue > cash) throw new Error('Insufficient cash')
+        newCash = cash - tradeValue
+        const existing = positions.find((p) => p.ticker === ticker)
+        newPositions = existing
+          ? positions.map((p) => {
+              if (p.ticker !== ticker) return p
+              const newShares = p.shares + shareCount
+              const newAvgPrice = (p.shares * (p.purchasePrice ?? p.price) + shareCount * currentPrice) / newShares
+              return { ...p, shares: newShares, price: newAvgPrice, purchasePrice: newAvgPrice }
+            })
+          : [...positions, { ticker, shares: shareCount, price: currentPrice, purchasePrice: currentPrice }]
+      } else {
+        const existing = positions.find((p) => p.ticker === ticker)
+        if (!existing || shareCount > existing.shares) throw new Error('Insufficient shares')
+        newCash = cash + tradeValue
+        newPositions = positions
+          .map((p) => p.ticker === ticker ? { ...p, shares: p.shares - shareCount } : p)
+          .filter((p) => p.shares > 0)
+      }
+
+      const { error: saveErr } = await supabase
+        .from('portfolios')
+        .update({ cash_balance: newCash, positions: newPositions })
+        .eq('user_id', userId)
+
+      if (saveErr) throw new Error('Failed to save trade')
+
+      close()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong')
+    } finally {
+      setConfirming(false)
+    }
   }
 
   return (
@@ -106,20 +173,23 @@ export default function TradeActions({ ticker, currentPrice, sharesOwned }: Prop
                 You only own {sharesOwned} {sharesOwned === 1 ? 'share' : 'shares'}
               </p>
             )}
+            {error && <p className="text-red-400 text-xs -mt-2">{error}</p>}
 
             {/* Actions */}
             <div className="flex gap-3">
               <button
                 onClick={close}
-                className="flex-1 py-3 rounded-xl border border-white/10 text-white/60 text-sm font-semibold hover:bg-white/5 transition-colors"
+                disabled={confirming}
+                className="flex-1 py-3 rounded-xl border border-white/10 text-white/60 text-sm font-semibold hover:bg-white/5 transition-colors disabled:opacity-40"
               >
                 Cancel
               </button>
               <button
+                onClick={confirmTrade}
                 disabled={!canConfirm}
                 className="flex-1 py-3 rounded-xl bg-gold text-navy text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
               >
-                Confirm
+                {confirming ? 'Saving…' : 'Confirm'}
               </button>
             </div>
           </div>
