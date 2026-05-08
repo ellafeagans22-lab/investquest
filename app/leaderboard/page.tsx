@@ -135,6 +135,7 @@ export default async function LeaderboardPage() {
                 const isCurrentUser = entry.user_id === user.id
                 const medal = medals[index] ?? null
                 const rank = index + 1
+                const topPct = Math.ceil((rank / entries.length) * 100)
 
                 const totalValue = entry.total_value ?? 0
                 const gl = totalValue - STARTING_BALANCE
@@ -143,7 +144,11 @@ export default async function LeaderboardPage() {
                 const glStr = `${up ? '+' : '−'}$${fmt(Math.abs(gl))} (${up ? '+' : '−'}${Math.abs(glPct).toFixed(1)}%)`
 
                 return (
-                  <li key={entry.user_id}>
+                  <li key={entry.user_id} className="relative">
+                    {/* Pulsing gold ring for current user */}
+                    {isCurrentUser && (
+                      <div className="absolute inset-0 rounded-2xl ring-2 ring-gold/50 animate-pulse pointer-events-none" />
+                    )}
                     <div
                       className={`flex items-center gap-4 rounded-2xl px-5 py-4 border transition-colors ${
                         isCurrentUser
@@ -151,15 +156,12 @@ export default async function LeaderboardPage() {
                           : 'bg-white/5 border-white/10'
                       }`}
                     >
-                      {/* Rank */}
-                      <div className="w-8 shrink-0 flex items-center justify-center">
-                        {medal ? (
-                          <span className="text-2xl">{medal}</span>
-                        ) : (
-                          <span className={`text-sm font-bold tabular-nums ${isCurrentUser ? 'text-gold' : 'text-white/30'}`}>
-                            #{rank}
-                          </span>
-                        )}
+                      {/* Rank number + medal */}
+                      <div className="w-10 shrink-0 flex flex-col items-center justify-center gap-0.5">
+                        <span className={`text-xs font-bold tabular-nums leading-none ${isCurrentUser ? 'text-gold' : 'text-white/40'}`}>
+                          #{rank}
+                        </span>
+                        {medal && <span className="text-lg leading-none">{medal}</span>}
                       </div>
 
                       {/* Avatar initial */}
@@ -171,7 +173,7 @@ export default async function LeaderboardPage() {
                         {(entry.display_name ?? '?')[0].toUpperCase()}
                       </div>
 
-                      {/* Name */}
+                      {/* Name + Top X% */}
                       <div className="flex-1 min-w-0">
                         <p className={`font-semibold truncate ${isCurrentUser ? 'text-gold' : 'text-white'}`}>
                           {entry.display_name ?? 'Anonymous'}
@@ -179,6 +181,9 @@ export default async function LeaderboardPage() {
                             <span className="ml-2 text-xs font-normal text-gold/60">you</span>
                           )}
                         </p>
+                        {isCurrentUser && (
+                          <p className="text-white/30 text-xs">Top {topPct}%</p>
+                        )}
                       </div>
 
                       {/* Total value + gain/loss */}
@@ -194,6 +199,25 @@ export default async function LeaderboardPage() {
                   </li>
                 )
               })}
+
+              {/* Ghost row when only 1 user */}
+              {entries.length === 1 && (
+                <li>
+                  <div className="flex items-center gap-4 rounded-2xl px-5 py-4 border border-dashed border-white/10 bg-white/[0.02]">
+                    <div className="w-10 shrink-0 flex items-center justify-center">
+                      <span className="text-xs font-bold tabular-nums text-white/20">#2</span>
+                    </div>
+                    <div className="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-white/20">
+                        <path fillRule="evenodd" d="M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3V12.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white/25 text-sm font-medium">Invite a friend to unlock competition</p>
+                    </div>
+                  </div>
+                </li>
+              )}
             </ol>
           )}
 
