@@ -1,8 +1,11 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { redirect } from 'next/navigation'
 import BottomNav from '@/components/BottomNav'
 import Buck from '@/components/Buck'
+import LessonPlayer from './LessonPlayer'
 import { WORLDS } from '@/lib/worlds'
+import { createServerSupabaseClient } from '@/lib/supabase-server'
 
 export default async function LessonPage({
   params,
@@ -10,6 +13,7 @@ export default async function LessonPage({
   params: Promise<{ worldId: string; unitId: string; lessonId: string }>
 }) {
   const { worldId, unitId, lessonId } = await params
+
   const world = WORLDS.find((w) => w.id === worldId)
   if (!world) notFound()
   const unit = world.units.find((u) => u.id === unitId)
@@ -17,17 +21,32 @@ export default async function LessonPage({
   const lesson = unit.lessons.find((l) => l.id === lessonId)
   if (!lesson) notFound()
 
-  const lessonIndex = unit.lessons.indexOf(lesson)
-  const progress = 0
+  const supabase = await createServerSupabaseClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
 
+  const lessonIndex = unit.lessons.indexOf(lesson)
+
+  // ── Real lesson player ─────────────────────────────────────────────────────
+  if (lesson.questions.length > 0) {
+    return (
+      <LessonPlayer
+        worldId={worldId}
+        unitId={unitId}
+        lessonTitle={lesson.title}
+        lessonIndex={lessonIndex}
+        totalLessons={unit.lessons.length}
+        questions={lesson.questions}
+        userId={user.id}
+      />
+    )
+  }
+
+  // ── Coming soon ────────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col min-h-screen bg-navy">
-      {/* Progress bar */}
-      <div className="h-1 w-full bg-white/10">
-        <div className="h-full bg-gold transition-all" style={{ width: `${progress}%` }} />
-      </div>
+      <div className="h-1 w-full bg-white/10" />
 
-      {/* Navbar */}
       <nav className="px-6 py-4 border-b border-white/10">
         <div className="max-w-2xl mx-auto flex items-center gap-3">
           <div className="w-8 h-8 rounded-md bg-gold flex items-center justify-center">
@@ -39,8 +58,6 @@ export default async function LessonPage({
 
       <main className="flex-1 px-6 pt-10 pb-28">
         <div className="max-w-2xl mx-auto flex flex-col">
-
-          {/* Back link */}
           <Link
             href={`/learn/${worldId}/${unitId}`}
             className="inline-flex items-center gap-1.5 text-white/50 text-sm font-medium hover:text-white/80 transition-colors mb-8"
@@ -51,7 +68,6 @@ export default async function LessonPage({
             {unit.title}
           </Link>
 
-          {/* Lesson header */}
           <div className="mb-10">
             <p className="text-gold text-xs font-semibold uppercase tracking-widest mb-1">
               Lesson {lessonIndex + 1} of {unit.lessons.length}
@@ -59,14 +75,12 @@ export default async function LessonPage({
             <h1 className="text-2xl font-bold text-white leading-snug">{lesson.title}</h1>
           </div>
 
-          {/* Coming soon */}
           <div className="flex flex-col items-center justify-center flex-1 gap-4 py-16">
             <Buck size="md" animate />
             <p className="text-white/40 text-sm text-center">
               Lesson coming soon — check back shortly!
             </p>
           </div>
-
         </div>
       </main>
 

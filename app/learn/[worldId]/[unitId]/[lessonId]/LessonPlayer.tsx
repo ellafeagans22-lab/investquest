@@ -1,0 +1,154 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import Buck from '@/components/Buck'
+import QuestionEngine from '@/components/QuestionEngine'
+import { createClient } from '@/lib/supabase-browser'
+import type { Question } from '@/lib/worlds'
+
+const ENCOURAGEMENTS = [
+  'Keep going!',
+  "You've got this!",
+  'Nice work!',
+  'Almost there!',
+]
+
+const XP_REWARD = 20
+
+interface Props {
+  worldId: string
+  unitId: string
+  lessonTitle: string
+  lessonIndex: number
+  totalLessons: number
+  questions: Question[]
+  userId: string
+}
+
+export default function LessonPlayer({
+  worldId, unitId, lessonTitle, lessonIndex, totalLessons, questions, userId,
+}: Props) {
+  const router = useRouter()
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [done, setDone] = useState(false)
+  const [awardingXp, setAwardingXp] = useState(false)
+
+  const total = questions.length
+  const progress = total > 0 ? Math.round((currentIndex / total) * 100) : 0
+  const encouragement = ENCOURAGEMENTS[currentIndex % ENCOURAGEMENTS.length]
+
+  async function awardXp() {
+    setAwardingXp(true)
+    try {
+      const supabase = createClient()
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('xp')
+        .eq('id', userId)
+        .single()
+      const currentXp = profile?.xp ?? 0
+      await supabase
+        .from('profiles')
+        .update({ xp: currentXp + XP_REWARD })
+        .eq('id', userId)
+    } catch {
+      // non-blocking — XP award best-effort
+    } finally {
+      setAwardingXp(false)
+    }
+  }
+
+  function handleAnswer(correct: boolean) {
+    if (!correct) return // stay on same question; engine shows feedback
+    if (currentIndex + 1 >= total) {
+      awardXp()
+      setDone(true)
+    } else {
+      setTimeout(() => setCurrentIndex((i) => i + 1), 800)
+    }
+  }
+
+  // ── Completion screen ──────────────────────────────────────────────────────
+  if (done) {
+    return (
+      <div className="flex flex-col min-h-screen bg-navy">
+        <div className="h-1 w-full bg-gold" />
+        <div className="flex-1 flex flex-col items-center justify-center px-6 gap-6 text-center pb-28">
+          <Buck size="md" animate />
+          <div>
+            <p className="text-gold text-xs font-semibold uppercase tracking-widest mb-2">Lesson complete!</p>
+            <h1 className="text-3xl font-bold text-white mb-1">{lessonTitle}</h1>
+            <p className="text-white/40 text-sm">You finished all {total} questions.</p>
+          </div>
+          <div className="bg-gold/10 border border-gold/30 rounded-2xl px-8 py-4 flex flex-col items-center gap-1">
+            <p className="text-white/50 text-xs font-semibold uppercase tracking-widest">XP Earned</p>
+            <p className="text-gold text-4xl font-bold">+{XP_REWARD}</p>
+          </div>
+          <Link
+            href={`/learn/${worldId}`}
+            className="w-full max-w-sm py-4 rounded-2xl bg-gold text-navy text-sm font-bold text-center hover:opacity-90 transition-opacity"
+          >
+            Continue
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  const question = questions[currentIndex]
+
+  // ── Question player ────────────────────────────────────────────────────────
+  return (
+    <div className="flex flex-col min-h-screen bg-navy">
+      {/* Progress bar */}
+      <div className="h-1 w-full bg-white/10">
+        <div className="h-full bg-gold transition-all duration-500" style={{ width: `${progress}%` }} />
+      </div>
+
+      {/* Navbar */}
+      <nav className="px-6 py-4 border-b border-white/10">
+        <div className="max-w-2xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-md bg-gold flex items-center justify-center">
+              <span className="text-navy font-bold text-sm">IQ</span>
+            </div>
+            <span className="text-white font-semibold text-xl tracking-tight">InvestQuest</span>
+          </div>
+          <span className="text-white/30 text-xs tabular-nums font-semibold">
+            {currentIndex + 1} / {total}
+          </span>
+        </div>
+      </nav>
+
+      <main className="flex-1 px-6 pt-8 pb-28">
+        <div className="max-w-2xl mx-auto flex flex-col gap-6">
+
+          {/* Lesson context */}
+          <div>
+            <p className="text-gold text-xs font-semibold uppercase tracking-widest mb-1">
+              Lesson {lessonIndex + 1} of {totalLessons}
+            </p>
+            <h1 className="text-xl font-bold text-white leading-snug">{lessonTitle}</h1>
+          </div>
+
+          {/* Prompt */}
+          <div className="bg-white/5 border border-white/10 rounded-2xl px-5 py-4">
+            <p className="text-white text-base font-medium leading-relaxed">{question.prompt}</p>
+          </div>
+
+          {/* Question engine */}
+          <QuestionEngine question={question} onAnswer={handleAnswer} />
+
+          {/* Buck encouragement */}
+          <div className="flex items-center gap-3 mt-2">
+            <Buck size="sm" animate={false} />
+            <p className="text-white/30 text-xs italic">{encouragement}</p>
+          </div>
+
+        </div>
+      </main>
+    </div>
+  )
+}
