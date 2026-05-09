@@ -7,7 +7,7 @@ interface Props {
 const SIZE_MAP = {
   sm: { src: '/buck-favicon.png', px: 64 },
   md: { src: '/buck-avatar.png', px: 168 },
-  lg: { src: '/buck.png', px: undefined },
+  lg: { src: '/buck-avatar.png', px: undefined },
 }
 
 export default function Buck({ size = 'md', animate = true, className }: Props) {
