@@ -193,3 +193,49 @@ export const WORLDS: World[] = [
     ]),
   },
 ]
+
+// ── World 1 › Unit 1 › Lesson 1: "The History of Money" ──────────────────────
+WORLDS[0].units[0].lessons[0].questions = [
+  {
+    id: 'w1-u1-l1-q1',
+    type: 'multiple-choice',
+    prompt: 'What is a stock?',
+    options: [
+      'A loan you give to a company',
+      'A share of ownership in a company',
+      'A type of savings account',
+      'A government-issued bond',
+    ],
+    correctIndex: 1,
+  },
+  {
+    id: 'w1-u1-l1-q2',
+    type: 'true-false',
+    prompt: 'The stock market is only open 24 hours a day, 7 days a week.',
+    correct: false,
+  },
+  {
+    id: 'w1-u1-l1-q3',
+    type: 'fill-blank',
+    prompt: 'When you buy a stock, you become a ___ of that company.',
+    answer: 'shareholder',
+    hint: 'Think about what owning a share makes you.',
+  },
+  {
+    id: 'w1-u1-l1-q4',
+    type: 'word-bank',
+    prompt: 'Match each term to its definition.',
+    pairs: [
+      { term: 'Stock',     definition: 'Ownership share in a company' },
+      { term: 'Dividend',  definition: 'Company profit paid to shareholders' },
+      { term: 'Portfolio', definition: 'A collection of investments' },
+    ],
+  },
+  {
+    id: 'w1-u1-l1-q5',
+    type: 'multiple-choice',
+    prompt: 'Which of these is a real stock exchange?',
+    options: ['NYSE', 'GameZone', 'TradeMart', 'BuyHub'],
+    correctIndex: 0,
+  },
+]
