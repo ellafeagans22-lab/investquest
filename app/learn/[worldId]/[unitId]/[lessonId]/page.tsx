@@ -36,6 +36,7 @@ export default async function LessonPage({
         lessonTitle={lesson.title}
         lessonIndex={lessonIndex}
         totalLessons={unit.lessons.length}
+        intro={lesson.intro}
         questions={lesson.questions}
         userId={user.id}
       />

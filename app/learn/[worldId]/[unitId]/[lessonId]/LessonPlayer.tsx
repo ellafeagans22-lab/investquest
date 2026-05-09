@@ -8,6 +8,8 @@ import QuestionEngine from '@/components/QuestionEngine'
 import { createClient } from '@/lib/supabase-browser'
 import type { Question } from '@/lib/worlds'
 
+type Intro = { title: string; body: string }
+
 const ENCOURAGEMENTS = [
   'Keep going!',
   "You've got this!",
@@ -23,14 +25,16 @@ interface Props {
   lessonTitle: string
   lessonIndex: number
   totalLessons: number
+  intro?: Intro
   questions: Question[]
   userId: string
 }
 
 export default function LessonPlayer({
-  worldId, unitId, lessonTitle, lessonIndex, totalLessons, questions, userId,
+  worldId, unitId, lessonTitle, lessonIndex, totalLessons, intro, questions, userId,
 }: Props) {
   const router = useRouter()
+  const [showIntro, setShowIntro] = useState(!!intro)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [done, setDone] = useState(false)
   const [awardingXp, setAwardingXp] = useState(false)
@@ -68,6 +72,44 @@ export default function LessonPlayer({
     } else {
       setTimeout(() => setCurrentIndex((i) => i + 1), 800)
     }
+  }
+
+  // ── Intro screen ──────────────────────────────────────────────────────────
+  if (showIntro && intro) {
+    return (
+      <div className="flex flex-col min-h-screen bg-navy">
+        <div className="h-1 w-full bg-white/10" />
+
+        <nav className="px-6 py-4 border-b border-white/10">
+          <div className="max-w-2xl mx-auto flex items-center gap-3">
+            <div className="w-8 h-8 rounded-md bg-gold flex items-center justify-center">
+              <span className="text-navy font-bold text-sm">IQ</span>
+            </div>
+            <span className="text-white font-semibold text-xl tracking-tight">InvestQuest</span>
+          </div>
+        </nav>
+
+        <main className="flex-1 flex items-center justify-center px-6 pb-28">
+          <div className="max-w-2xl w-full flex flex-col gap-8">
+            <div>
+              <p className="text-gold text-xs font-semibold uppercase tracking-widest mb-2">
+                Lesson {lessonIndex + 1} of {totalLessons}
+              </p>
+              <h1 className="text-3xl font-bold text-white leading-snug mb-6">{intro.title}</h1>
+              <div className="bg-white/5 border border-white/10 rounded-2xl px-6 py-5">
+                <p className="text-white/80 text-sm leading-relaxed">{intro.body}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowIntro(false)}
+              className="w-full py-4 rounded-2xl bg-gold text-navy text-sm font-bold hover:opacity-90 transition-opacity"
+            >
+              Start Lesson →
+            </button>
+          </div>
+        </main>
+      </div>
+    )
   }
 
   // ── Completion screen ──────────────────────────────────────────────────────

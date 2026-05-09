@@ -37,6 +37,10 @@ export type Question =
 export type Lesson = {
   id: string
   title: string
+  intro?: {
+    title: string
+    body: string
+  }
   questions: Question[]
 }
 
