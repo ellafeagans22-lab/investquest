@@ -1,9 +1,38 @@
-export type Question = {
+export type MultipleChoiceQuestion = {
   id: string
+  type: 'multiple-choice'
   prompt: string
   options: [string, string, string, string]
   correctIndex: 0 | 1 | 2 | 3
 }
+
+export type TrueFalseQuestion = {
+  id: string
+  type: 'true-false'
+  prompt: string
+  correct: boolean
+}
+
+export type FillBlankQuestion = {
+  id: string
+  type: 'fill-blank'
+  prompt: string
+  answer: string
+  hint?: string
+}
+
+export type WordBankQuestion = {
+  id: string
+  type: 'word-bank'
+  prompt: string
+  pairs: { term: string; definition: string }[]
+}
+
+export type Question =
+  | MultipleChoiceQuestion
+  | TrueFalseQuestion
+  | FillBlankQuestion
+  | WordBankQuestion
 
 export type Lesson = {
   id: string
