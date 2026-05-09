@@ -19,7 +19,7 @@ export default function Buck({ size = 'md', animate = true, className }: Props) 
       width={px}
       height={px}
       className={className}
-      style={animate ? { animation: 'buck-bounce 2s ease-in-out infinite' } : undefined}
+      style={{ background: 'transparent', ...(animate ? { animation: 'buck-bounce 2s ease-in-out infinite' } : {}) }}
     />
   )
 }
