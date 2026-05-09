@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
@@ -27,9 +29,9 @@ export default function Home() {
             one lesson at a time.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-gold text-navy font-semibold px-8 py-3 rounded-lg hover:opacity-90 transition-opacity">
+            <Link href="/login" className="bg-gold text-navy font-semibold px-8 py-3 rounded-lg hover:opacity-90 transition-opacity">
               Get Started
-            </button>
+            </Link>
             <button className="border border-white/30 text-white font-semibold px-8 py-3 rounded-lg hover:bg-white/10 transition-colors">
               Learn More
             </button>

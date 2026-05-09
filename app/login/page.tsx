@@ -30,7 +30,7 @@ export default function LoginPage() {
       <div className="relative w-full max-w-md">
         {/* Buck mascot */}
         <div className="flex flex-col items-center mb-6">
-          <Buck size="lg" animate />
+          <Buck size="md" animate />
           <p className="mt-3 text-gold text-sm font-semibold text-center">
             Meet Buck, your investing guide.
           </p>
