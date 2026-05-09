@@ -15,8 +15,8 @@ function MultipleChoice({ question, onAnswer }: Props & { question: Extract<Ques
 
   function pick(index: number) {
     if (selected !== null) return
-    setSelected(index)
-    setTimeout(() => onAnswer(index === question.correctIndex), 800)
+    setSelected(index) // show green/red feedback immediately
+    setTimeout(() => onAnswer(index === question.correctIndex), 800) // advance after feedback
   }
 
   return (
@@ -53,8 +53,8 @@ function TrueFalse({ question, onAnswer }: Props & { question: Extract<Question,
 
   function pick(value: boolean) {
     if (selected !== null) return
-    setSelected(value)
-    setTimeout(() => onAnswer(value === question.correct), 800)
+    setSelected(value) // show green/red feedback immediately
+    setTimeout(() => onAnswer(value === question.correct), 800) // advance after feedback
   }
 
   function styleFor(value: boolean) {
