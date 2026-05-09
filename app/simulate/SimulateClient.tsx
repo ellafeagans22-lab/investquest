@@ -6,6 +6,7 @@ import BottomNav from '@/components/BottomNav'
 import { createClient } from '@/lib/supabase-browser'
 import { fetchLivePrices, type StockPrice } from '@/lib/stockPrices'
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip } from 'recharts'
+import Buck from '@/components/Buck'
 
 const STOCK_META: Record<string, string> = {
   AAPL: 'Apple Inc.',
@@ -319,9 +320,8 @@ export default function SimulateClient({ userId, initialCash, initialPositions, 
               </p>
               {portfolio.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-6 gap-2">
-                  <span className="text-3xl">📭</span>
-                  <p className="text-white/30 text-sm font-medium">No positions yet</p>
-                  <p className="text-white/20 text-xs">Buy a stock below to get started</p>
+                  <Buck size="md" />
+                  <p className="text-white/60 text-sm font-medium">Buck says: make your first trade!</p>
                 </div>
               ) : (
                 <ul className="flex flex-col divide-y divide-white/5">
