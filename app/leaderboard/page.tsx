@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import BottomNav from '@/components/BottomNav'
 import { getStockPrices, type StockPrice } from '@/lib/getStockPrices'
 import ShareButton from './ShareButton'
+import Buck from '@/components/Buck'
 
 const medals = ['🥇', '🥈', '🥉']
 
@@ -87,6 +88,7 @@ export default async function LeaderboardPage() {
           <div className={`bg-gradient-to-br ${currentLeague.bgClass} border rounded-2xl px-6 py-5 mb-6`}>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
+                <Buck size="sm" animate={false} />
                 <span className="text-4xl leading-none">{currentLeague.emoji}</span>
                 <div>
                   <p className="text-white font-bold text-lg leading-tight">{currentLeague.name}</p>
