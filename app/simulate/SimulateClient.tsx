@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase-browser'
 import { fetchLivePrices, type StockPrice } from '@/lib/stockPrices'
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip } from 'recharts'
 import Buck from '@/components/Buck'
+import BuckLoader from '@/components/BuckLoader'
 
 const STOCK_META: Record<string, string> = {
   AAPL: 'Apple Inc.',
@@ -390,13 +391,7 @@ export default function SimulateClient({ userId, initialCash, initialPositions, 
                 </button>
               </div>
               {loadingPrices && prices.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-6 gap-2">
-                  <svg className="w-6 h-6 animate-spin text-gold/40" viewBox="0 0 24 24" fill="none">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                  </svg>
-                  <p className="text-white/30 text-xs">Fetching live prices…</p>
-                </div>
+                <BuckLoader label="Fetching live prices…" />
               ) : (
                 <ul className="flex flex-col divide-y divide-white/5">
                   {TICKERS.map((ticker) => {
