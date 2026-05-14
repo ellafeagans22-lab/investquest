@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Buck from '@/components/Buck'
 import QuestionEngine from '@/components/QuestionEngine'
@@ -34,7 +33,6 @@ interface Props {
 export default function LessonPlayer({
   worldId, unitId, lessonId, lessonTitle, lessonIndex, totalLessons, intro, questions, userId,
 }: Props) {
-  const router = useRouter()
   const [showIntro, setShowIntro] = useState(!!intro)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [done, setDone] = useState(false)
@@ -50,13 +48,27 @@ export default function LessonPlayer({
       const supabase = createClient()
       const { data: profile } = await supabase
         .from('profiles')
-        .select('xp')
+        .select('xp, streak, last_active')
         .eq('id', userId)
         .single()
+
       const currentXp = profile?.xp ?? 0
+      const currentStreak = profile?.streak ?? 0
+      const lastActive: string | null = profile?.last_active ?? null
+      const today = new Date().toISOString().split('T')[0]
+
+      let newStreak: number
+      if (lastActive === today) {
+        newStreak = currentStreak
+      } else if (lastActive === new Date(Date.now() - 86_400_000).toISOString().split('T')[0]) {
+        newStreak = currentStreak + 1
+      } else {
+        newStreak = 1
+      }
+
       await supabase
         .from('profiles')
-        .update({ xp: currentXp + XP_REWARD })
+        .update({ xp: currentXp + XP_REWARD, streak: newStreak, last_active: today })
         .eq('id', userId)
       await supabase
         .from('lesson_completions')
