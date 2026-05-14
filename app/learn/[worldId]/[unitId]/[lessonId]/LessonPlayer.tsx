@@ -81,12 +81,14 @@ export default function LessonPlayer({
   }
 
   function handleAnswer(correct: boolean) {
-    if (!correct) return // stay on same question; engine shows feedback
     if (currentIndex + 1 >= total) {
       awardXp()
       setDone(true)
     } else {
-      setTimeout(() => setCurrentIndex((i) => i + 1), 800)
+      // Correct answers have an 800ms pause built into the sub-component before
+      // onAnswer fires, so add no extra delay. Wrong answers come from an explicit
+      // Continue button click, so advance immediately.
+      setTimeout(() => setCurrentIndex((i) => i + 1), correct ? 800 : 0)
     }
   }
 

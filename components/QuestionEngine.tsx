@@ -15,9 +15,14 @@ function MultipleChoice({ question, onAnswer }: Props & { question: Extract<Ques
 
   function pick(index: number) {
     if (selected !== null) return
-    setSelected(index) // show green/red feedback immediately
-    setTimeout(() => onAnswer(index === question.correctIndex), 800) // advance after feedback
+    setSelected(index)
+    if (index === question.correctIndex) {
+      setTimeout(() => onAnswer(true), 800)
+    }
+    // wrong: wait for the Continue button
   }
+
+  const wrong = selected !== null && selected !== question.correctIndex
 
   return (
     <div className="flex flex-col gap-3">
@@ -42,6 +47,14 @@ function MultipleChoice({ question, onAnswer }: Props & { question: Extract<Ques
           </button>
         )
       })}
+      {wrong && (
+        <button
+          onClick={() => onAnswer(false)}
+          className="w-full py-3.5 rounded-2xl bg-white/10 border border-white/20 text-white text-sm font-bold hover:bg-white/15 transition-all"
+        >
+          Continue →
+        </button>
+      )}
     </div>
   )
 }
@@ -53,8 +66,11 @@ function TrueFalse({ question, onAnswer }: Props & { question: Extract<Question,
 
   function pick(value: boolean) {
     if (selected !== null) return
-    setSelected(value) // show green/red feedback immediately
-    setTimeout(() => onAnswer(value === question.correct), 800) // advance after feedback
+    setSelected(value)
+    if (value === question.correct) {
+      setTimeout(() => onAnswer(true), 800)
+    }
+    // wrong: wait for the Continue button
   }
 
   function styleFor(value: boolean) {
@@ -71,18 +87,30 @@ function TrueFalse({ question, onAnswer }: Props & { question: Extract<Question,
     return 'bg-white/5 border-white/10 text-white/30'
   }
 
+  const wrong = selected !== null && selected !== question.correct
+
   return (
-    <div className="flex gap-4">
-      {([true, false] as const).map((value) => (
+    <div className="flex flex-col gap-3">
+      <div className="flex gap-4">
+        {([true, false] as const).map((value) => (
+          <button
+            key={String(value)}
+            onClick={() => pick(value)}
+            disabled={selected !== null}
+            className={`flex-1 py-5 rounded-2xl border text-lg font-bold transition-all disabled:cursor-default ${styleFor(value)}`}
+          >
+            {value ? 'True' : 'False'}
+          </button>
+        ))}
+      </div>
+      {wrong && (
         <button
-          key={String(value)}
-          onClick={() => pick(value)}
-          disabled={selected !== null}
-          className={`flex-1 py-5 rounded-2xl border text-lg font-bold transition-all disabled:cursor-default ${styleFor(value)}`}
+          onClick={() => onAnswer(false)}
+          className="w-full py-3.5 rounded-2xl bg-white/10 border border-white/20 text-white text-sm font-bold hover:bg-white/15 transition-all"
         >
-          {value ? 'True' : 'False'}
+          Continue →
         </button>
-      ))}
+      )}
     </div>
   )
 }
@@ -97,7 +125,10 @@ function FillBlank({ question, onAnswer }: Props & { question: Extract<Question,
     if (result) return
     const correct = input.trim().toLowerCase() === question.answer.trim().toLowerCase()
     setResult(correct ? 'correct' : 'wrong')
-    setTimeout(() => onAnswer(correct), 800)
+    if (correct) {
+      setTimeout(() => onAnswer(true), 800)
+    }
+    // wrong: wait for the Continue button
   }
 
   function handleKey(e: React.KeyboardEvent) {
@@ -127,13 +158,22 @@ function FillBlank({ question, onAnswer }: Props & { question: Extract<Question,
           Correct answer: <span className="font-semibold">{question.answer}</span>
         </p>
       )}
-      <button
-        onClick={check}
-        disabled={!input.trim() || result !== null}
-        className="w-full py-3.5 rounded-2xl bg-gold text-navy text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
-      >
-        {result === 'correct' ? '✓ Correct!' : result === 'wrong' ? '✗ Wrong' : 'Check'}
-      </button>
+      {result === 'wrong' ? (
+        <button
+          onClick={() => onAnswer(false)}
+          className="w-full py-3.5 rounded-2xl bg-white/10 border border-white/20 text-white text-sm font-bold hover:bg-white/15 transition-all"
+        >
+          Continue →
+        </button>
+      ) : (
+        <button
+          onClick={check}
+          disabled={!input.trim() || result !== null}
+          className="w-full py-3.5 rounded-2xl bg-gold text-navy text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
+        >
+          {result === 'correct' ? '✓ Correct!' : 'Check'}
+        </button>
+      )}
     </div>
   )
 }
