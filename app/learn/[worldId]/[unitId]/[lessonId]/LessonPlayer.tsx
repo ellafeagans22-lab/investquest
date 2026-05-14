@@ -22,6 +22,7 @@ const XP_REWARD = 20
 interface Props {
   worldId: string
   unitId: string
+  lessonId: string
   lessonTitle: string
   lessonIndex: number
   totalLessons: number
@@ -31,7 +32,7 @@ interface Props {
 }
 
 export default function LessonPlayer({
-  worldId, unitId, lessonTitle, lessonIndex, totalLessons, intro, questions, userId,
+  worldId, unitId, lessonId, lessonTitle, lessonIndex, totalLessons, intro, questions, userId,
 }: Props) {
   const router = useRouter()
   const [showIntro, setShowIntro] = useState(!!intro)
@@ -57,8 +58,11 @@ export default function LessonPlayer({
         .from('profiles')
         .update({ xp: currentXp + XP_REWARD })
         .eq('id', userId)
+      await supabase
+        .from('lesson_completions')
+        .upsert({ user_id: userId, lesson_id: lessonId }, { onConflict: 'user_id,lesson_id' })
     } catch {
-      // non-blocking — XP award best-effort
+      // non-blocking — XP award and completion recording are best-effort
     } finally {
       setAwardingXp(false)
     }

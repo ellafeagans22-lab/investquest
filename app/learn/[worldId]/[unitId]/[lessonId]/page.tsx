@@ -33,6 +33,7 @@ export default async function LessonPage({
       <LessonPlayer
         worldId={worldId}
         unitId={unitId}
+        lessonId={lessonId}
         lessonTitle={lesson.title}
         lessonIndex={lessonIndex}
         totalLessons={unit.lessons.length}
