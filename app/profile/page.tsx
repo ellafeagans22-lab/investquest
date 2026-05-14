@@ -1,6 +1,23 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import BottomNav from '@/components/BottomNav'
+import { WORLDS } from '@/lib/worlds'
+
+// Flatten all lessons with world/unit context — single source of truth
+const allLessonsWithContext = WORLDS.flatMap((w) =>
+  w.units.flatMap((u) =>
+    u.lessons.map((l) => ({
+      id: l.id,
+      title: l.title,
+      worldTitle: w.title,
+      unitTitle: u.title,
+    }))
+  )
+)
+const totalLessons = allLessonsWithContext.length
+
+// Lesson IDs for the Unit 1 Graduate badge
+const w1u1LessonIds = WORLDS[0].units[0].lessons.map((l) => l.id)
 
 const badges = [
   {
@@ -8,7 +25,7 @@ const badges = [
     emoji: '🥇',
     name: 'First Step',
     description: 'Complete your first lesson.',
-    earned: (completedCount: number, _streak: number, completedIds: Set<string>) =>
+    earned: (completedCount: number, _streak: number, _completedIds: Set<string>) =>
       completedCount >= 1,
   },
   {
@@ -23,29 +40,18 @@ const badges = [
     id: 'unit-1-graduate',
     emoji: '📚',
     name: 'Unit 1 Graduate',
-    description: 'Complete all 5 lessons in Investing Basics.',
+    description: `Complete all lessons in ${WORLDS[0].units[0].title}.`,
     earned: (_completedCount: number, _streak: number, completedIds: Set<string>) =>
-      ['1', '2', '3', '4', '5'].every((id) => completedIds.has(id)),
+      w1u1LessonIds.every((id) => completedIds.has(id)),
   },
   {
     id: 'investquest-pro',
     emoji: '⭐',
     name: 'InvestQuest Pro',
-    description: 'Complete all 8 lessons.',
+    description: `Complete all ${totalLessons} lessons.`,
     earned: (completedCount: number, _streak: number, _completedIds: Set<string>) =>
-      completedCount >= 8,
+      completedCount >= totalLessons,
   },
-]
-
-const allLessons = [
-  { id: '1', title: 'What is the Stock Market?' },
-  { id: '2', title: 'What is a Share?' },
-  { id: '3', title: 'Bulls vs. Bears' },
-  { id: '4', title: 'What is Compound Interest?' },
-  { id: '5', title: 'What is Inflation?' },
-  { id: '6', title: 'What is a Dividend?' },
-  { id: '7', title: 'What is Market Cap?' },
-  { id: '8', title: 'How to Read a Stock Chart?' },
 ]
 
 export default async function ProfilePage() {
@@ -71,6 +77,9 @@ export default async function ProfilePage() {
 
   const completedIds = new Set((completions ?? []).map((r) => String(r.lesson_id)))
   const completedCount = completedIds.size
+
+  // Only the completed lessons, enriched with world + unit labels
+  const completedLessons = allLessonsWithContext.filter((l) => completedIds.has(l.id))
 
   return (
     <div className="flex flex-col min-h-screen bg-navy">
@@ -162,43 +171,44 @@ export default async function ProfilePage() {
                   Lessons completed
                 </p>
                 <span className="text-xs font-semibold text-gold">
-                  {completedCount} / {allLessons.length}
+                  {completedCount} / {totalLessons}
                 </span>
               </div>
               <p className="text-sm text-gold/70 font-medium mb-4">
-                {completedCount} of {allLessons.length} lessons
+                {completedCount} / {totalLessons} lessons complete
               </p>
 
-              <ul className="flex flex-col gap-2">
-                {allLessons.map((lesson) => {
-                  const done = completedIds.has(lesson.id)
-                  return (
-                    <li key={lesson.id} className="flex items-center gap-3">
-                      <span className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
-                        done ? 'bg-gold' : 'bg-white/10'
-                      }`}>
-                        {done && (
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3 text-navy">
-                            <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clipRule="evenodd" />
-                          </svg>
-                        )}
-                      </span>
-                      <span className={`text-sm ${done ? 'text-white/60' : 'text-white/30'}`}>
-                        {lesson.title}
-                      </span>
-                    </li>
-                  )
-                })}
-              </ul>
-
               {/* Progress bar */}
-              <div className="mt-4 h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+              <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden mb-4">
                 <div
                   className="h-full bg-gold rounded-full"
-                  style={{ width: `${(completedCount / allLessons.length) * 100}%` }}
+                  style={{ width: `${(completedCount / totalLessons) * 100}%` }}
                 />
               </div>
+
+              {completedLessons.length === 0 ? (
+                <p className="text-sm text-white/30 italic">No lessons completed yet. Start learning!</p>
+              ) : (
+                <ul className="flex flex-col gap-2">
+                  {completedLessons.map((lesson) => (
+                    <li key={lesson.id} className="flex items-start gap-3">
+                      <span className="w-5 h-5 rounded-full bg-gold flex items-center justify-center shrink-0 mt-0.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3 text-navy">
+                          <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clipRule="evenodd" />
+                        </svg>
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-sm text-white/80 leading-snug">{lesson.title}</p>
+                        <p className="text-xs text-white/35 mt-0.5">
+                          {lesson.worldTitle} · {lesson.unitTitle}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
+
             {/* Badges */}
             <div className="bg-white/5 border border-white/10 rounded-2xl px-6 py-5">
               <p className="text-xs text-white/50 font-semibold uppercase tracking-widest mb-4">
