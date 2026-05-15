@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { CheckCircle2 } from 'lucide-react'
 import BottomNav from '@/components/BottomNav'
 import { WORLDS } from '@/lib/worlds'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
@@ -64,20 +65,27 @@ export default async function UnitPage({ params }: { params: Promise<{ worldId: 
           {/* Lesson list */}
           <ol className="flex flex-col gap-3">
             {unit.lessons.map((lesson, index) => {
-              const lessonUnlocked = unlocks.isLessonUnlocked(worldId, unitId, lesson.id)
+              const lessonComplete = completedIds.has(lesson.id)
+              const lessonUnlocked = lessonComplete || unlocks.isLessonUnlocked(worldId, unitId, lesson.id)
 
               const lessonInner = (
                 <>
-                  <div className={`w-9 h-9 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0 ${lessonUnlocked ? 'group-hover:bg-gold group-hover:border-gold transition-all' : ''}`}>
-                    <span className={`text-gold text-sm font-bold ${lessonUnlocked ? 'group-hover:text-navy transition-colors' : ''}`}>
+                  <div className={`w-9 h-9 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0 ${lessonUnlocked && !lessonComplete ? 'group-hover:bg-gold group-hover:border-gold transition-all' : ''}`}>
+                    <span className={`text-gold text-sm font-bold ${lessonUnlocked && !lessonComplete ? 'group-hover:text-navy transition-colors' : ''}`}>
                       {index + 1}
                     </span>
                   </div>
                   <span className={`flex-1 text-sm font-medium ${lessonUnlocked ? 'text-white group-hover:text-gold transition-colors' : 'text-white'}`}>
                     {lesson.title}
                   </span>
-                  <span className={`shrink-0 ${lessonUnlocked ? 'text-white/30 group-hover:text-gold transition-colors' : 'text-white/30'}`}>
-                    {lessonUnlocked ? '→' : '🔒'}
+                  <span className="shrink-0">
+                    {lessonComplete ? (
+                      <CheckCircle2 className="w-5 h-5 text-green-400" />
+                    ) : lessonUnlocked ? (
+                      <span className="text-white/30 group-hover:text-gold transition-colors">→</span>
+                    ) : (
+                      <span>🔒</span>
+                    )}
                   </span>
                 </>
               )

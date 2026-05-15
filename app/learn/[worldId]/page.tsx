@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { CheckCircle2 } from 'lucide-react'
 import BottomNav from '@/components/BottomNav'
 import { WORLDS } from '@/lib/worlds'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
@@ -69,6 +70,7 @@ export default async function WorldPage({ params }: { params: Promise<{ worldId:
             {world.units.map((unit, index) => {
               const isLast = index === world.units.length - 1
               const unitUnlocked = unlocks.isUnitUnlocked(world.id, unit.id)
+              const unitComplete = unit.lessons.every((l) => completedIds.has(l.id))
 
               const cardInner = (
                 <>
@@ -80,8 +82,14 @@ export default async function WorldPage({ params }: { params: Promise<{ worldId:
                       {unit.lessons.length} lessons
                     </p>
                   </div>
-                  <span className="text-white/30 group-hover:text-gold transition-colors shrink-0">
-                    {unitUnlocked ? '→' : '🔒'}
+                  <span className="shrink-0">
+                    {unitComplete ? (
+                      <CheckCircle2 className="w-5 h-5 text-green-400" />
+                    ) : unitUnlocked ? (
+                      <span className="text-white/30 group-hover:text-gold transition-colors">→</span>
+                    ) : (
+                      <span>🔒</span>
+                    )}
                   </span>
                 </>
               )

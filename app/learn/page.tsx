@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { CheckCircle2 } from 'lucide-react'
 import BottomNav from '@/components/BottomNav'
 import Buck from '@/components/Buck'
 import { WORLDS } from '@/lib/worlds'
@@ -52,11 +53,15 @@ export default async function LearnPage() {
           <div className="flex flex-col gap-5">
             {WORLDS.map((world) => {
               const totalLessons = world.units.reduce((sum, u) => sum + u.lessons.length, 0)
+              const worldUnlocked = unlocks.isWorldUnlocked(world.id)
+              const worldComplete = world.units.every((u) =>
+                u.lessons.every((l) => completedIds.has(l.id))
+              )
 
               const card = (
                 <div
                   className={`relative rounded-2xl border overflow-hidden transition-all ${
-                    world.unlocked
+                    worldUnlocked
                       ? 'bg-white/5 border-white/10 hover:border-gold/40 hover:bg-white/8'
                       : 'bg-white/[0.02] border-white/5 opacity-60 cursor-not-allowed'
                   }`}
@@ -73,28 +78,30 @@ export default async function LearnPage() {
 
                       {/* Text */}
                       <div className="flex-1 min-w-0">
-                        <h2 className={`text-lg font-bold leading-tight mb-1 ${world.unlocked ? 'text-white' : 'text-white/40'}`}>
+                        <h2 className={`text-lg font-bold leading-tight mb-1 ${worldUnlocked ? 'text-white' : 'text-white/40'}`}>
                           {world.title}
                         </h2>
-                        <p className={`text-sm leading-relaxed ${world.unlocked ? 'text-white/50' : 'text-white/25'}`}>
+                        <p className={`text-sm leading-relaxed ${worldUnlocked ? 'text-white/50' : 'text-white/25'}`}>
                           {world.description}
                         </p>
 
                         {/* Stats row */}
                         <div className="flex items-center gap-4 mt-3">
-                          <span className={`text-xs font-semibold ${world.unlocked ? 'text-white/40' : 'text-white/20'}`}>
+                          <span className={`text-xs font-semibold ${worldUnlocked ? 'text-white/40' : 'text-white/20'}`}>
                             {world.units.length} units
                           </span>
                           <span className="text-white/10">·</span>
-                          <span className={`text-xs font-semibold ${world.unlocked ? 'text-white/40' : 'text-white/20'}`}>
+                          <span className={`text-xs font-semibold ${worldUnlocked ? 'text-white/40' : 'text-white/20'}`}>
                             {totalLessons} lessons
                           </span>
                         </div>
                       </div>
 
-                      {/* Lock or arrow */}
+                      {/* Complete / arrow / lock indicator */}
                       <div className="shrink-0 mt-1">
-                        {world.unlocked ? (
+                        {worldComplete ? (
+                          <CheckCircle2 className="w-5 h-5 text-green-400" />
+                        ) : worldUnlocked ? (
                           <span className="text-gold/50 text-lg">→</span>
                         ) : (
                           <span className="text-2xl">🔒</span>
@@ -108,7 +115,7 @@ export default async function LearnPage() {
                         <span
                           key={unit.id}
                           className={`text-xs font-medium px-3 py-1 rounded-full border ${
-                            world.unlocked
+                            worldUnlocked
                               ? 'border-white/10 text-white/40 bg-white/5'
                               : 'border-white/5 text-white/20'
                           }`}
@@ -121,7 +128,7 @@ export default async function LearnPage() {
                 </div>
               )
 
-              return world.unlocked ? (
+              return worldUnlocked ? (
                 <Link key={world.id} href={`/learn/${world.id}`}>
                   {card}
                 </Link>
