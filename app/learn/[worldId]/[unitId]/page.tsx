@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import BottomNav from '@/components/BottomNav'
 import { WORLDS } from '@/lib/worlds'
+import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { getUnlockState } from '@/lib/unlocks'
 
 export default async function UnitPage({ params }: { params: Promise<{ worldId: string; unitId: string }> }) {
   const { worldId, unitId } = await params
@@ -9,6 +11,20 @@ export default async function UnitPage({ params }: { params: Promise<{ worldId: 
   if (!world) notFound()
   const unit = world.units.find((u) => u.id === unitId)
   if (!unit) notFound()
+
+  const supabase = await createServerSupabaseClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  let completedIds = new Set<string>()
+  if (user) {
+    const { data: completions } = await supabase
+      .from('lesson_completions')
+      .select('lesson_id')
+      .eq('user_id', user.id)
+    completedIds = new Set((completions ?? []).map((r) => String(r.lesson_id)))
+  }
+
+  const unlocks = getUnlockState(completedIds)
 
   return (
     <div className="flex flex-col min-h-screen bg-navy">
@@ -47,24 +63,42 @@ export default async function UnitPage({ params }: { params: Promise<{ worldId: 
 
           {/* Lesson list */}
           <ol className="flex flex-col gap-3">
-            {unit.lessons.map((lesson, index) => (
-              <li key={lesson.id}>
-                <Link
-                  href={`/learn/${worldId}/${unitId}/${lesson.id}`}
-                  className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 hover:bg-white/8 hover:border-gold/30 transition-all group"
-                >
-                  <div className="w-9 h-9 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0 group-hover:bg-gold group-hover:border-gold transition-all">
-                    <span className="text-gold text-sm font-bold group-hover:text-navy transition-colors">
+            {unit.lessons.map((lesson, index) => {
+              const lessonUnlocked = unlocks.isLessonUnlocked(worldId, unitId, lesson.id)
+
+              const lessonInner = (
+                <>
+                  <div className={`w-9 h-9 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0 ${lessonUnlocked ? 'group-hover:bg-gold group-hover:border-gold transition-all' : ''}`}>
+                    <span className={`text-gold text-sm font-bold ${lessonUnlocked ? 'group-hover:text-navy transition-colors' : ''}`}>
                       {index + 1}
                     </span>
                   </div>
-                  <span className="flex-1 text-white text-sm font-medium group-hover:text-gold transition-colors">
+                  <span className={`flex-1 text-sm font-medium ${lessonUnlocked ? 'text-white group-hover:text-gold transition-colors' : 'text-white'}`}>
                     {lesson.title}
                   </span>
-                  <span className="text-white/30 group-hover:text-gold transition-colors shrink-0">→</span>
-                </Link>
-              </li>
-            ))}
+                  <span className={`shrink-0 ${lessonUnlocked ? 'text-white/30 group-hover:text-gold transition-colors' : 'text-white/30'}`}>
+                    {lessonUnlocked ? '→' : '🔒'}
+                  </span>
+                </>
+              )
+
+              return (
+                <li key={lesson.id}>
+                  {lessonUnlocked ? (
+                    <Link
+                      href={`/learn/${worldId}/${unitId}/${lesson.id}`}
+                      className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 hover:bg-white/8 hover:border-gold/30 transition-all group"
+                    >
+                      {lessonInner}
+                    </Link>
+                  ) : (
+                    <div className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 opacity-50 cursor-not-allowed">
+                      {lessonInner}
+                    </div>
+                  )}
+                </li>
+              )
+            })}
           </ol>
 
         </div>

@@ -2,8 +2,24 @@ import Link from 'next/link'
 import BottomNav from '@/components/BottomNav'
 import Buck from '@/components/Buck'
 import { WORLDS } from '@/lib/worlds'
+import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { getUnlockState } from '@/lib/unlocks'
 
-export default function LearnPage() {
+export default async function LearnPage() {
+  const supabase = await createServerSupabaseClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  let completedIds = new Set<string>()
+  if (user) {
+    const { data: completions } = await supabase
+      .from('lesson_completions')
+      .select('lesson_id')
+      .eq('user_id', user.id)
+    completedIds = new Set((completions ?? []).map((r) => String(r.lesson_id)))
+  }
+
+  const unlocks = getUnlockState(completedIds)
+
   return (
     <div className="flex flex-col min-h-screen bg-navy">
       {/* Navbar */}

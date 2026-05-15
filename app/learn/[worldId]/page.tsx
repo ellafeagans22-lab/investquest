@@ -2,11 +2,27 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import BottomNav from '@/components/BottomNav'
 import { WORLDS } from '@/lib/worlds'
+import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { getUnlockState } from '@/lib/unlocks'
 
 export default async function WorldPage({ params }: { params: Promise<{ worldId: string }> }) {
   const { worldId } = await params
   const world = WORLDS.find((w) => w.id === worldId)
   if (!world) notFound()
+
+  const supabase = await createServerSupabaseClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  let completedIds = new Set<string>()
+  if (user) {
+    const { data: completions } = await supabase
+      .from('lesson_completions')
+      .select('lesson_id')
+      .eq('user_id', user.id)
+    completedIds = new Set((completions ?? []).map((r) => String(r.lesson_id)))
+  }
+
+  const unlocks = getUnlockState(completedIds)
 
   return (
     <div className="flex flex-col min-h-screen bg-navy">
@@ -52,15 +68,31 @@ export default async function WorldPage({ params }: { params: Promise<{ worldId:
           <div className="flex flex-col">
             {world.units.map((unit, index) => {
               const isLast = index === world.units.length - 1
+              const unitUnlocked = unlocks.isUnitUnlocked(world.id, unit.id)
+
+              const cardInner = (
+                <>
+                  <div className="min-w-0">
+                    <p className="text-white font-semibold text-sm leading-tight group-hover:text-gold transition-colors">
+                      {unit.title}
+                    </p>
+                    <p className="text-white/40 text-xs mt-0.5">
+                      {unit.lessons.length} lessons
+                    </p>
+                  </div>
+                  <span className="text-white/30 group-hover:text-gold transition-colors shrink-0">
+                    {unitUnlocked ? '→' : '🔒'}
+                  </span>
+                </>
+              )
+
               return (
                 <div key={unit.id} className="flex gap-4">
                   {/* Connector column */}
                   <div className="flex flex-col items-center w-8 shrink-0">
-                    {/* Node */}
                     <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center shrink-0 z-10 ${world.color} border-transparent`}>
                       <span className="text-white text-xs font-bold">{index + 1}</span>
                     </div>
-                    {/* Connecting line */}
                     {!isLast && (
                       <div className="w-0.5 flex-1 bg-white/10 my-1" />
                     )}
@@ -68,20 +100,18 @@ export default async function WorldPage({ params }: { params: Promise<{ worldId:
 
                   {/* Unit card */}
                   <div className={`flex-1 ${isLast ? '' : 'mb-4'}`}>
-                    <Link
-                      href={`/learn/${world.id}/${unit.id}`}
-                      className="flex items-center justify-between gap-4 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 hover:bg-white/8 hover:border-gold/30 transition-all group"
-                    >
-                      <div className="min-w-0">
-                        <p className="text-white font-semibold text-sm leading-tight group-hover:text-gold transition-colors">
-                          {unit.title}
-                        </p>
-                        <p className="text-white/40 text-xs mt-0.5">
-                          {unit.lessons.length} lessons
-                        </p>
+                    {unitUnlocked ? (
+                      <Link
+                        href={`/learn/${world.id}/${unit.id}`}
+                        className="flex items-center justify-between gap-4 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 hover:bg-white/8 hover:border-gold/30 transition-all group"
+                      >
+                        {cardInner}
+                      </Link>
+                    ) : (
+                      <div className="flex items-center justify-between gap-4 bg-white/5 border border-white/10 rounded-2xl px-5 py-4 opacity-50 cursor-not-allowed">
+                        {cardInner}
                       </div>
-                      <span className="text-white/30 group-hover:text-gold transition-colors shrink-0">→</span>
-                    </Link>
+                    )}
                   </div>
                 </div>
               )
