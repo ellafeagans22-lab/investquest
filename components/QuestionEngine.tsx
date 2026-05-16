@@ -41,7 +41,7 @@ function MultipleChoice({ question, onAnswer }: Props & { question: Extract<Ques
             key={i}
             onClick={() => pick(i)}
             disabled={selected !== null}
-            className={`w-full text-left px-5 py-4 rounded-2xl border text-sm font-medium transition-all ${style} disabled:cursor-default`}
+            className={`btn-press w-full text-left px-5 py-4 rounded-2xl border text-sm font-medium transition-all ${style} disabled:cursor-default`}
           >
             {opt}
           </button>
@@ -97,7 +97,7 @@ function TrueFalse({ question, onAnswer }: Props & { question: Extract<Question,
             key={String(value)}
             onClick={() => pick(value)}
             disabled={selected !== null}
-            className={`flex-1 py-5 rounded-2xl border text-lg font-bold transition-all disabled:cursor-default ${styleFor(value)}`}
+            className={`btn-press flex-1 py-5 rounded-2xl border text-lg font-bold transition-all disabled:cursor-default ${styleFor(value)}`}
           >
             {value ? 'True' : 'False'}
           </button>
@@ -169,7 +169,7 @@ function FillBlank({ question, onAnswer }: Props & { question: Extract<Question,
         <button
           onClick={check}
           disabled={!input.trim() || result !== null}
-          className="w-full py-3.5 rounded-2xl bg-gold text-navy text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
+          className="btn-press w-full py-3.5 rounded-2xl bg-gold text-navy text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
         >
           {result === 'correct' ? '✓ Correct!' : 'Check'}
         </button>
@@ -226,7 +226,7 @@ function WordBank({ question, onAnswer }: Props & { question: Extract<Question, 
               key={p.term}
               onClick={() => pickTerm(p.term)}
               disabled={isMatched}
-              className={`text-left px-3 py-3 rounded-xl border text-xs font-semibold transition-all disabled:cursor-default ${
+              className={`btn-press text-left px-3 py-3 rounded-xl border text-xs font-semibold transition-all disabled:cursor-default ${
                 isMatched  ? 'bg-green-500/15 border-green-400/40 text-green-400' :
                 isWrong    ? 'bg-red-500/15 border-red-400 text-red-300' :
                 isSelected ? 'bg-gold/20 border-gold text-gold' :
@@ -249,7 +249,7 @@ function WordBank({ question, onAnswer }: Props & { question: Extract<Question, 
               key={p.definition}
               onClick={() => pickDef(p.definition)}
               disabled={isMatched || !selectedTerm}
-              className={`text-left px-3 py-3 rounded-xl border text-xs transition-all disabled:cursor-default leading-snug ${
+              className={`btn-press text-left px-3 py-3 rounded-xl border text-xs transition-all disabled:cursor-default leading-snug ${
                 isMatched ? 'bg-green-500/15 border-green-400/40 text-green-400' :
                 selectedTerm ? 'bg-white/5 border-white/10 text-white hover:border-gold/40 hover:bg-gold/5' :
                               'bg-white/5 border-white/10 text-white/40'
