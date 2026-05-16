@@ -15,9 +15,19 @@ const STOCK_META: Record<string, string> = {
   GOOGL: 'Alphabet Inc.',
   MSFT: 'Microsoft Corp.',
   AMZN: 'Amazon.com, Inc.',
+  NVDA: 'NVIDIA Corp.',
+  META: 'Meta Platforms, Inc.',
+  NFLX: 'Netflix, Inc.',
+  DIS: 'The Walt Disney Co.',
+  BABA: 'Alibaba Group',
+  JPM: 'JPMorgan Chase & Co.',
+  V: 'Visa Inc.',
+  WMT: 'Walmart Inc.',
+  JNJ: 'Johnson & Johnson',
+  BA: 'The Boeing Co.',
 }
 
-const TICKERS = ['AAPL', 'TSLA', 'GOOGL', 'MSFT', 'AMZN']
+const TICKERS = ['AAPL', 'TSLA', 'GOOGL', 'MSFT', 'AMZN', 'NVDA', 'META', 'NFLX', 'DIS', 'BABA', 'JPM', 'V', 'WMT', 'JNJ', 'BA']
 
 type Position = { ticker: string; shares: number; price: number; purchasePrice?: number }
 type ModalTarget = { ticker: string; name: string; price: number; mode: 'buy' | 'sell'; maxShares?: number }

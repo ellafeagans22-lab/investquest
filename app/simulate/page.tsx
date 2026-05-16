@@ -24,14 +24,13 @@ export default async function SimulatePage() {
   }
 
   const positions = portfolio?.positions ?? []
-  positions.forEach((pos: unknown) => console.log('[portfolio position]', pos))
 
   const { data: historyRows } = await supabase
     .from('price_history')
     .select('ticker, price, fetched_at')
     .order('fetched_at', { ascending: true })
 
-  const TICKERS = ['AAPL', 'TSLA', 'GOOGL', 'MSFT', 'AMZN']
+  const TICKERS = ['AAPL', 'TSLA', 'GOOGL', 'MSFT', 'AMZN', 'NVDA', 'META', 'NFLX', 'DIS', 'BABA', 'JPM', 'V', 'WMT', 'JNJ', 'BA']
   const initialPriceHistory: Record<string, number[]> = {}
   const latestPriceByTicker: Record<string, number> = {}
   for (const ticker of TICKERS) {
@@ -60,8 +59,6 @@ export default async function SimulatePage() {
       .eq('user_id', user.id)
       .order('created_at', { ascending: true }),
   ])
-
-  console.log('[snapshots]', { rows: snapshots, error: snapshotsErr })
 
   return (
     <SimulateClient
