@@ -27,8 +27,9 @@ export default function TradeActions({ ticker, currentPrice, sharesOwned, userId
 
   const shareCount = Math.max(0, parseInt(shareInput, 10) || 0)
   const total = currentPrice != null ? shareCount * currentPrice : 0
+  const overCash = mode === 'buy' && total > cashBalance
   const overShares = mode === 'sell' && sharesOwned != null && shareCount > sharesOwned
-  const canConfirm = shareCount > 0 && !overShares && currentPrice != null && !confirming
+  const canConfirm = shareCount > 0 && !overCash && !overShares && currentPrice != null && !confirming
 
   function open(m: 'buy' | 'sell') {
     setShareInput('1')
@@ -193,11 +194,14 @@ export default function TradeActions({ ticker, currentPrice, sharesOwned, userId
             {/* Total */}
             <div className="flex items-center justify-between text-sm">
               <span className="text-white/40">{mode === 'buy' ? 'Total cost' : 'You receive'}</span>
-              <span className={`font-semibold tabular-nums ${overShares ? 'text-red-400' : 'text-white'}`}>
+              <span className={`font-semibold tabular-nums ${overCash || overShares ? 'text-red-400' : 'text-white'}`}>
                 ${fmt(total)}
               </span>
             </div>
 
+            {overCash && (
+              <p className="text-red-400 text-xs -mt-2">Insufficient cash</p>
+            )}
             {overShares && (
               <p className="text-red-400 text-xs -mt-2">
                 You only own {sharesOwned} {sharesOwned === 1 ? 'share' : 'shares'}
