@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import Buck from '@/components/Buck'
 import Confetti from '@/components/Confetti'
@@ -51,10 +51,23 @@ export default function LessonPlayer({
   const [currentIndex, setCurrentIndex] = useState(0)
   const [done, setDone] = useState(false)
   const [awardingXp, setAwardingXp] = useState(false)
+  const [xpDisplay, setXpDisplay] = useState(0)
   const completionMessage = useMemo(
     () => COMPLETION_MESSAGES[Math.floor(Math.random() * COMPLETION_MESSAGES.length)],
     []
   )
+
+  useEffect(() => {
+    if (!done) return
+    setXpDisplay(0)
+    let count = 0
+    const interval = setInterval(() => {
+      count += 1
+      setXpDisplay(count)
+      if (count >= XP_REWARD) clearInterval(interval)
+    }, 40)
+    return () => clearInterval(interval)
+  }, [done])
 
   const total = questions.length
   const progress = total > 0 ? Math.round((currentIndex / total) * 100) : 0
@@ -164,7 +177,7 @@ export default function LessonPlayer({
           </div>
           <div className="bg-gold/10 border border-gold/30 rounded-2xl px-8 py-4 flex flex-col items-center gap-1">
             <p className="text-white/50 text-xs font-semibold uppercase tracking-widest">XP Earned</p>
-            <p className="text-gold text-4xl font-bold">+{XP_REWARD}</p>
+            <p className="text-gold text-4xl font-bold">+{xpDisplay}</p>
           </div>
           <Link
             href={`/learn/${worldId}`}
