@@ -11,13 +11,14 @@ interface Props {
   currentPrice: number | null
   sharesOwned: number | null
   userId: string
+  cashBalance: number
 }
 
 function fmt(n: number) {
   return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
-export default function TradeActions({ ticker, currentPrice, sharesOwned, userId }: Props) {
+export default function TradeActions({ ticker, currentPrice, sharesOwned, userId, cashBalance }: Props) {
   const router = useRouter()
   const [mode, setMode] = useState<'buy' | 'sell' | null>(null)
   const [shareInput, setShareInput] = useState('1')
@@ -125,21 +126,26 @@ export default function TradeActions({ ticker, currentPrice, sharesOwned, userId
     <>
       {/* Action bar */}
       <div className="fixed bottom-16 left-0 right-0 z-40 px-4 py-3 bg-navy/95 backdrop-blur border-t border-white/10">
-        <div className="max-w-2xl mx-auto flex gap-3">
-          <button
-            onClick={() => open('buy')}
-            className="flex-1 py-3 rounded-xl bg-gold text-navy text-sm font-bold hover:opacity-90 transition-opacity"
-          >
-            Buy {ticker}
-          </button>
-          {sharesOwned != null && (
+        <div className="max-w-2xl mx-auto">
+          <p className="text-white/30 text-xs font-medium mb-2">
+            Available cash: ${fmt(cashBalance)}
+          </p>
+          <div className="flex gap-3">
             <button
-              onClick={() => open('sell')}
-              className="flex-1 py-3 rounded-xl border border-white/20 text-white/70 text-sm font-bold hover:bg-white/5 transition-colors"
+              onClick={() => open('buy')}
+              className="flex-1 py-3 rounded-xl bg-gold text-navy text-sm font-bold hover:opacity-90 transition-opacity"
             >
-              Sell {ticker}
+              Buy {ticker}
             </button>
-          )}
+            {sharesOwned != null && (
+              <button
+                onClick={() => open('sell')}
+                className="flex-1 py-3 rounded-xl border border-white/20 text-white/70 text-sm font-bold hover:bg-white/5 transition-colors"
+              >
+                Sell {ticker}
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

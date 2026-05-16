@@ -51,7 +51,7 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
       .limit(50),
     supabase
       .from('portfolios')
-      .select('positions')
+      .select('cash_balance, positions')
       .eq('user_id', user.id)
       .maybeSingle(),
   ])
@@ -178,6 +178,7 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
         currentPrice={currentPrice}
         sharesOwned={position?.shares ?? null}
         userId={user.id}
+        cashBalance={portfolio?.cash_balance ?? 0}
       />
 
       <BottomNav />
