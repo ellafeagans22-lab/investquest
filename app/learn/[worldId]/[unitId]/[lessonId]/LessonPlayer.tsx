@@ -60,13 +60,14 @@ export default function LessonPlayer({
   useEffect(() => {
     if (!done) return
     setXpDisplay(0)
-    let count = 0
-    const interval = setInterval(() => {
-      count += 1
-      setXpDisplay(count)
-      if (count >= XP_REWARD) clearInterval(interval)
+    let current = 0
+    const target = 20
+    const timer = setInterval(() => {
+      current += 1
+      setXpDisplay(current)
+      if (current >= target) clearInterval(timer)
     }, 40)
-    return () => clearInterval(interval)
+    return () => clearInterval(timer)
   }, [done])
 
   const total = questions.length
