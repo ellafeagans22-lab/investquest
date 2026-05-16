@@ -92,6 +92,8 @@ export default function SimulateClient({ userId, initialCash, initialPositions, 
   const [lastFetched, setLastFetched] = useState<Date | null>(null)
   const [priceHistory, setPriceHistory] = useState<Record<string, number[]>>(initialPriceHistory)
   const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [activeFilter, setActiveFilter] = useState<'all' | 'gainers' | 'losers'>('all')
 
   async function fetchHistory(): Promise<Record<string, number[]>> {
     const supabase = createClient()
@@ -408,11 +410,54 @@ export default function SimulateClient({ userId, initialCash, initialPositions, 
                   Refresh Prices
                 </button>
               </div>
+
+              {/* Search */}
+              <input
+                type="text"
+                placeholder="Search ticker or company…"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder:text-white/30 focus:outline-none focus:border-gold/40 transition-colors mb-3"
+              />
+
+              {/* Filter tabs */}
+              <div className="flex gap-2 mb-4">
+                {(['all', 'gainers', 'losers'] as const).map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setActiveFilter(f)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-colors ${
+                      activeFilter === f
+                        ? 'bg-gold text-navy'
+                        : 'border border-white/10 text-white/50 hover:bg-white/5'
+                    }`}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
+
               {loadingPrices && prices.length === 0 ? (
                 <BuckLoader label="Fetching live prices…" />
-              ) : (
+              ) : (() => {
+                const q = searchQuery.trim().toLowerCase()
+                const filteredTickers = TICKERS.filter((ticker) => {
+                  if (q && !ticker.toLowerCase().includes(q) && !(STOCK_META[ticker] ?? '').toLowerCase().includes(q)) return false
+                  if (activeFilter === 'gainers') {
+                    const live = prices.find((p) => p.ticker === ticker)
+                    if (!live || live.changePercent <= 0) return false
+                  }
+                  if (activeFilter === 'losers') {
+                    const live = prices.find((p) => p.ticker === ticker)
+                    if (!live || live.changePercent > 0) return false
+                  }
+                  return true
+                })
+                return filteredTickers.length === 0 ? (
+                  <p className="text-white/30 text-sm text-center py-6">No stocks match your filter.</p>
+                ) : (
                 <ul className="flex flex-col divide-y divide-white/5">
-                  {TICKERS.map((ticker) => {
+                  {filteredTickers.map((ticker) => {
                     const live = prices.find((p) => p.ticker === ticker)
                     const up = (live?.change ?? 0) >= 0
                     return (
@@ -459,7 +504,8 @@ export default function SimulateClient({ userId, initialCash, initialPositions, 
                     )
                   })}
                 </ul>
-              )}
+                )
+              })()}
             </div>
 
             {/* Transaction history */}
