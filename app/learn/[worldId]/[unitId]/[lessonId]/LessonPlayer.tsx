@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Buck from '@/components/Buck'
+import Confetti from '@/components/Confetti'
 import QuestionEngine from '@/components/QuestionEngine'
 import { createClient } from '@/lib/supabase-browser'
 import type { Question } from '@/lib/worlds'
@@ -134,6 +135,7 @@ export default function LessonPlayer({
   if (done) {
     return (
       <div className="flex flex-col min-h-screen bg-navy">
+        <Confetti />
         <div className="h-1 w-full bg-gold" />
         <div className="flex-1 flex flex-col items-center justify-center px-6 gap-6 text-center pb-28">
           <Buck size="md" animate />

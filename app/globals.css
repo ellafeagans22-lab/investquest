@@ -19,3 +19,13 @@ body {
   0%, 100% { transform: translateY(0); }
   50%       { transform: translateY(-6px); }
 }
+
+@keyframes confetti-fall {
+  to { transform: translateY(105vh) rotate(720deg); opacity: 0; }
+}
+@keyframes confetti-fall-l {
+  to { transform: translate(-50px, 105vh) rotate(-600deg); opacity: 0; }
+}
+@keyframes confetti-fall-r {
+  to { transform: translate(50px, 105vh) rotate(600deg); opacity: 0; }
+}
