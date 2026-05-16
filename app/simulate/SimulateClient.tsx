@@ -81,6 +81,7 @@ export default function SimulateClient({ userId, initialCash, initialPositions, 
   const [loadingPrices, setLoadingPrices] = useState(true)
   const [lastFetched, setLastFetched] = useState<Date | null>(null)
   const [priceHistory, setPriceHistory] = useState<Record<string, number[]>>(initialPriceHistory)
+  const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions)
 
   async function fetchHistory(): Promise<Record<string, number[]>> {
     const supabase = createClient()
@@ -172,6 +173,15 @@ export default function SimulateClient({ userId, initialCash, initialPositions, 
 
     setCash(newCash)
     setPortfolio(newPositions)
+    setTransactions((prev) => [{
+      id: crypto.randomUUID(),
+      ticker: modal.ticker,
+      action: modal.mode,
+      shares: shareCount,
+      price_per_share: modal.price,
+      total_value: tradeValue,
+      created_at: new Date().toISOString(),
+    }, ...prev])
     closeModal()
     await persist(newCash, newPositions)
 
@@ -447,14 +457,14 @@ export default function SimulateClient({ userId, initialCash, initialPositions, 
               <p className="text-xs text-white/50 font-semibold uppercase tracking-widest mb-4">
                 Transaction History
               </p>
-              {initialTransactions.length === 0 ? (
+              {transactions.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-6 gap-2">
                   <span className="text-3xl">🧾</span>
                   <p className="text-white/30 text-sm font-medium">No transactions yet</p>
                 </div>
               ) : (
                 <ul className="flex flex-col divide-y divide-white/5">
-                  {initialTransactions.map((tx) => {
+                  {transactions.map((tx) => {
                     const buy = tx.action === 'buy'
                     return (
                       <li key={tx.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
