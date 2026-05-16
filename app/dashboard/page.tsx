@@ -123,7 +123,7 @@ export default async function DashboardPage() {
                   {streak} {streak === 1 ? 'day' : 'days'}
                 </p>
               </div>
-              <span className="text-4xl" role="img" aria-label="fire">🔥</span>
+              <span className="inline-block flame-pulse text-4xl" role="img" aria-label="fire">🔥</span>
             </div>
 
             {/* XP History chart */}
