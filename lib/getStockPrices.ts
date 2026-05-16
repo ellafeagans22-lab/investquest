@@ -17,13 +17,13 @@ const supabase = createClient(
 
 const SYSTEM_PROMPT = `You are a financial data API. Return ONLY valid JSON — no markdown, no code blocks, no explanation.
 
-Return a JSON array of exactly 5 objects with these fields:
+Return a JSON array of exactly 15 objects with these fields:
 - ticker: string
 - price: number (realistic current price, slightly randomized each call)
 - change: number (today's price change in dollars, can be positive or negative)
 - changePercent: number (today's percentage change, can be positive or negative)
 
-Tickers: AAPL, TSLA, GOOGL, MSFT, AMZN
+Tickers: AAPL, TSLA, GOOGL, MSFT, AMZN, NVDA, META, NFLX, DIS, BABA, JPM, V, WMT, JNJ, BA
 
 Use realistic market prices with plausible single-day variation. Example shape:
 [{"ticker":"AAPL","price":213.49,"change":1.23,"changePercent":0.58}]`
@@ -31,7 +31,7 @@ Use realistic market prices with plausible single-day variation. Example shape:
 export async function getStockPrices(): Promise<StockPrice[]> {
   const message = await anthropic.messages.create({
     model: 'claude-sonnet-4-5',
-    max_tokens: 512,
+    max_tokens: 1024,
     system: [{ type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
     messages: [{ role: 'user', content: 'Return current stock prices.' }],
   })
