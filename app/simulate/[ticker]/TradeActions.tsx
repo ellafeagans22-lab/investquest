@@ -99,7 +99,6 @@ export default function TradeActions({ ticker, currentPrice, sharesOwned, userId
         price_per_share: currentPrice,
         total_value: tradeValue,
       }
-      console.log('[transaction insert payload]', txPayload)
       const { error: txErr } = await supabase.from('transactions').insert(txPayload)
       if (txErr) console.error('[transaction insert error]', txErr)
 
@@ -108,7 +107,6 @@ export default function TradeActions({ ticker, currentPrice, sharesOwned, userId
         return sum + pos.shares * price
       }, 0)
       const snapshotPayload = { user_id: userId, total_value: snapshotValue }
-      console.log('[snapshot insert payload]', snapshotPayload)
       const { error: snapshotErr } = await supabase
         .from('portfolio_snapshots')
         .insert(snapshotPayload)
