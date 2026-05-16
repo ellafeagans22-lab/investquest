@@ -94,6 +94,7 @@ export default function SimulateClient({ userId, initialCash, initialPositions, 
   const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions)
   const [searchQuery, setSearchQuery] = useState('')
   const [activeFilter, setActiveFilter] = useState<'all' | 'gainers' | 'losers'>('all')
+  const [sortBy, setSortBy] = useState<'default' | 'price-asc' | 'price-desc' | 'change-asc' | 'change-desc' | 'alpha'>('default')
 
   async function fetchHistory(): Promise<Record<string, number[]>> {
     const supabase = createClient()
@@ -420,21 +421,35 @@ export default function SimulateClient({ userId, initialCash, initialPositions, 
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder:text-white/30 focus:outline-none focus:border-gold/40 transition-colors mb-3"
               />
 
-              {/* Filter tabs */}
-              <div className="flex gap-2 mb-4">
-                {(['all', 'gainers', 'losers'] as const).map((f) => (
-                  <button
-                    key={f}
-                    onClick={() => setActiveFilter(f)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-colors ${
-                      activeFilter === f
-                        ? 'bg-gold text-navy'
-                        : 'border border-white/10 text-white/50 hover:bg-white/5'
-                    }`}
-                  >
-                    {f}
-                  </button>
-                ))}
+              {/* Filter tabs + sort */}
+              <div className="flex items-center justify-between gap-2 mb-4">
+                <div className="flex gap-2">
+                  {(['all', 'gainers', 'losers'] as const).map((f) => (
+                    <button
+                      key={f}
+                      onClick={() => setActiveFilter(f)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-colors ${
+                        activeFilter === f
+                          ? 'bg-gold text-navy'
+                          : 'border border-white/10 text-white/50 hover:bg-white/5'
+                      }`}
+                    >
+                      {f}
+                    </button>
+                  ))}
+                </div>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+                  className="bg-white/5 border border-white/10 rounded-lg px-2.5 py-1.5 text-white/50 text-xs font-semibold focus:outline-none focus:border-gold/40 transition-colors cursor-pointer"
+                >
+                  <option value="default">Default</option>
+                  <option value="price-asc">Price ↑</option>
+                  <option value="price-desc">Price ↓</option>
+                  <option value="change-asc">% Change ↑</option>
+                  <option value="change-desc">% Change ↓</option>
+                  <option value="alpha">A→Z</option>
+                </select>
               </div>
 
               {loadingPrices && prices.length === 0 ? (
@@ -453,6 +468,18 @@ export default function SimulateClient({ userId, initialCash, initialPositions, 
                   }
                   return true
                 })
+                if (sortBy !== 'default') {
+                  filteredTickers.sort((a, b) => {
+                    if (sortBy === 'alpha') return a.localeCompare(b)
+                    const la = prices.find((p) => p.ticker === a)
+                    const lb = prices.find((p) => p.ticker === b)
+                    if (sortBy === 'price-asc') return (la?.price ?? 0) - (lb?.price ?? 0)
+                    if (sortBy === 'price-desc') return (lb?.price ?? 0) - (la?.price ?? 0)
+                    if (sortBy === 'change-asc') return (la?.changePercent ?? 0) - (lb?.changePercent ?? 0)
+                    if (sortBy === 'change-desc') return (lb?.changePercent ?? 0) - (la?.changePercent ?? 0)
+                    return 0
+                  })
+                }
                 return filteredTickers.length === 0 ? (
                   <p className="text-white/30 text-sm text-center py-6">No stocks match your filter.</p>
                 ) : (
