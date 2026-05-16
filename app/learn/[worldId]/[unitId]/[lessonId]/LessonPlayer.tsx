@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import Buck from '@/components/Buck'
 import Confetti from '@/components/Confetti'
@@ -15,6 +15,19 @@ const ENCOURAGEMENTS = [
   "You've got this!",
   'Nice work!',
   'Almost there!',
+]
+
+const COMPLETION_MESSAGES = [
+  "You're on a roll! 🐂",
+  'Buck is proud of you!',
+  "That's how winners learn!",
+  'Keep charging forward!',
+  'Another one down. Unstoppable.',
+  "You're building real knowledge!",
+  'The herd is impressed. 🐂',
+  'Consistency beats talent. Keep going.',
+  "Sharp mind. Buck approves.",
+  'One step closer to financial mastery!',
 ]
 
 const XP_REWARD = 20
@@ -38,6 +51,10 @@ export default function LessonPlayer({
   const [currentIndex, setCurrentIndex] = useState(0)
   const [done, setDone] = useState(false)
   const [awardingXp, setAwardingXp] = useState(false)
+  const completionMessage = useMemo(
+    () => COMPLETION_MESSAGES[Math.floor(Math.random() * COMPLETION_MESSAGES.length)],
+    []
+  )
 
   const total = questions.length
   const progress = total > 0 ? Math.round((currentIndex / total) * 100) : 0
@@ -141,6 +158,7 @@ export default function LessonPlayer({
           <Buck size="md" animate />
           <div>
             <p className="text-gold text-xs font-semibold uppercase tracking-widest mb-2">Lesson complete!</p>
+            <p className="text-white/50 text-sm mb-3">{completionMessage}</p>
             <h1 className="text-3xl font-bold text-white mb-1">{lessonTitle}</h1>
             <p className="text-white/40 text-sm">You finished all {total} questions.</p>
           </div>
