@@ -8,6 +8,7 @@ import { fetchLivePrices, type StockPrice } from '@/lib/stockPrices'
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip } from 'recharts'
 import Buck from '@/components/Buck'
 import BuckLoader from '@/components/BuckLoader'
+import { Star } from 'lucide-react'
 
 const STOCK_META: Record<string, string> = {
   AAPL: 'Apple Inc.',
@@ -93,8 +94,20 @@ export default function SimulateClient({ userId, initialCash, initialPositions, 
   const [priceHistory, setPriceHistory] = useState<Record<string, number[]>>(initialPriceHistory)
   const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions)
   const [searchQuery, setSearchQuery] = useState('')
-  const [activeFilter, setActiveFilter] = useState<'all' | 'gainers' | 'losers'>('all')
+  const [activeFilter, setActiveFilter] = useState<'all' | 'gainers' | 'losers' | 'watchlist'>('all')
   const [sortBy, setSortBy] = useState<'default' | 'price-asc' | 'price-desc' | 'change-asc' | 'change-desc' | 'alpha'>('default')
+  const [watchlist, setWatchlist] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return []
+    try { return JSON.parse(localStorage.getItem('iq_watchlist') ?? '[]') } catch { return [] }
+  })
+
+  function toggleWatchlist(ticker: string) {
+    setWatchlist((prev) => {
+      const next = prev.includes(ticker) ? prev.filter((t) => t !== ticker) : [...prev, ticker]
+      localStorage.setItem('iq_watchlist', JSON.stringify(next))
+      return next
+    })
+  }
 
   async function fetchHistory(): Promise<Record<string, number[]>> {
     const supabase = createClient()
@@ -424,7 +437,7 @@ export default function SimulateClient({ userId, initialCash, initialPositions, 
               {/* Filter tabs + sort */}
               <div className="flex items-center justify-between gap-2 mb-4">
                 <div className="flex gap-2">
-                  {(['all', 'gainers', 'losers'] as const).map((f) => (
+                  {(['all', 'gainers', 'losers', 'watchlist'] as const).map((f) => (
                     <button
                       key={f}
                       onClick={() => setActiveFilter(f)}
@@ -466,6 +479,7 @@ export default function SimulateClient({ userId, initialCash, initialPositions, 
                     const live = prices.find((p) => p.ticker === ticker)
                     if (!live || live.changePercent > 0) return false
                   }
+                  if (activeFilter === 'watchlist' && !watchlist.includes(ticker)) return false
                   return true
                 })
                 if (sortBy !== 'default') {
@@ -514,6 +528,21 @@ export default function SimulateClient({ userId, initialCash, initialPositions, 
                                 </p>
                               )}
                             </div>
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                toggleWatchlist(ticker)
+                              }}
+                              className="p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+                              aria-label={watchlist.includes(ticker) ? 'Remove from watchlist' : 'Add to watchlist'}
+                            >
+                              <Star
+                                className="w-4 h-4"
+                                fill={watchlist.includes(ticker) ? '#F5A623' : 'none'}
+                                stroke={watchlist.includes(ticker) ? '#F5A623' : 'rgba(255,255,255,0.3)'}
+                              />
+                            </button>
                             <button
                               onClick={(e) => {
                                 e.preventDefault()
