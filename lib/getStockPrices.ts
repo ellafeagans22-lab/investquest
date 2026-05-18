@@ -25,12 +25,14 @@ Return a JSON array of exactly 15 objects with these fields:
 
 Tickers: AAPL, TSLA, GOOGL, MSFT, AMZN, NVDA, META, NFLX, DIS, BABA, JPM, V, WMT, JNJ, BA
 
+changePercent must be between -3.0 and +3.0. Never exceed this range. change must equal price × (changePercent / 100), rounded to 2 decimal places.
+
 Use realistic market prices with plausible single-day variation. Example shape:
 [{"ticker":"AAPL","price":213.49,"change":1.23,"changePercent":0.58}]`
 
 export async function getStockPrices(): Promise<StockPrice[]> {
   const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5',
+    model: 'claude-haiku-4-5-20251001',
     max_tokens: 1024,
     system: [{ type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
     messages: [{ role: 'user', content: 'Return current stock prices.' }],
