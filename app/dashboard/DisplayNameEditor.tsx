@@ -73,17 +73,27 @@ export default function DisplayNameEditor({ initialName }: { initialName: string
             </button>
           </div>
         </div>
-      ) : (
-        <div className="flex items-center gap-3 group">
+      ) : displayed ? (
+        <div className="flex items-center gap-3">
           <h1 className="text-3xl font-bold text-white">
-            Welcome back{displayed ? `, ${displayed}` : ''}!
+            Welcome back, {displayed}!
           </h1>
           <button
             onClick={() => { setDraft(name); setEditing(true) }}
             aria-label="Edit display name"
-            className="opacity-0 group-hover:opacity-100 transition-opacity text-white/40 hover:text-gold"
+            className="text-white/40 hover:text-gold transition-colors"
           >
             <PencilIcon />
+          </button>
+        </div>
+      ) : (
+        <div className="flex items-center gap-2">
+          <h1 className="text-3xl font-bold text-white">Welcome!</h1>
+          <button
+            onClick={() => { setDraft(''); setEditing(true) }}
+            className="text-gold font-semibold text-lg hover:opacity-80 transition-opacity"
+          >
+            Set your name →
           </button>
         </div>
       )}
