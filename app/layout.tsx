@@ -13,8 +13,20 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "InvestQuest",
-  description: "Learn money. Build wealth. Beat the market.",
+  title: 'InvestQuest — Learn to Invest, One Lesson at a Time',
+  description: 'Master investing with bite-sized lessons, real stock simulations, and a progress system that keeps you motivated. Free to start.',
+  openGraph: {
+    title: 'InvestQuest — Learn to Invest, One Lesson at a Time',
+    description: 'Master investing with bite-sized lessons, real stock simulations, and a progress system that keeps you motivated.',
+    url: 'https://investquest-ten.vercel.app',
+    siteName: 'InvestQuest',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'InvestQuest — Learn to Invest, One Lesson at a Time',
+    description: 'Master investing with bite-sized lessons and real stock simulations.',
+  },
 };
 
 export default function RootLayout({
