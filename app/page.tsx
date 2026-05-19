@@ -82,6 +82,15 @@ export default function Home() {
             </div>
           </div>
         </div>
+
+        {/* CTA */}
+        <div className="mt-20 text-center">
+          <h2 className="text-3xl font-bold text-white mb-3">Ready to start investing smarter?</h2>
+          <p className="text-white/50 text-base mb-8">Free to join. No credit card required.</p>
+          <Link href="/login" className="inline-block bg-gold text-navy font-semibold px-8 py-3 rounded-lg hover:opacity-90 transition-opacity">
+            Get Started free →
+          </Link>
+        </div>
       </section>
 
       {/* Footer */}
