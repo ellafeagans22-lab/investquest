@@ -1,7 +1,7 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import SignOutButton from './SignOutButton'
+import UserMenu from './SignOutButton'
 import DisplayNameEditor from './DisplayNameEditor'
 import BottomNav from '@/components/BottomNav'
 
@@ -74,7 +74,7 @@ export default async function DashboardPage() {
               InvestQuest
             </span>
           </div>
-          <SignOutButton />
+          <UserMenu name={profile?.display_name} />
         </div>
       </nav>
 
