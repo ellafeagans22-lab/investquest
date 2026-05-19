@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import Buck from '@/components/Buck'
 
@@ -72,13 +73,13 @@ export default function LoginPage() {
           {/* Footer */}
           <p className="mt-6 text-center text-xs text-foreground/40">
             By continuing, you agree to our{' '}
-            <span className="underline underline-offset-2 cursor-pointer hover:text-foreground/60">
+            <Link href="/terms" className="underline underline-offset-2 hover:text-foreground/60 transition-colors">
               Terms
-            </span>{' '}
+            </Link>{' '}
             and{' '}
-            <span className="underline underline-offset-2 cursor-pointer hover:text-foreground/60">
+            <Link href="/privacy" className="underline underline-offset-2 hover:text-foreground/60 transition-colors">
               Privacy Policy
-            </span>
+            </Link>
             .
           </p>
         </div>
