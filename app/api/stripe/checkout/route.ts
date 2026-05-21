@@ -17,8 +17,8 @@ export async function POST() {
       mode: 'subscription',
       line_items: [{ price: process.env.STRIPE_PRICE_ID!, quantity: 1 }],
       customer_email: user.email,
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/upgrade?success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/upgrade?canceled=true`,
+      success_url: 'https://investquest-ten.vercel.app/upgrade?success=true',
+      cancel_url: 'https://investquest-ten.vercel.app/upgrade?canceled=true',
     })
 
     console.log('Session URL:', session.url)
