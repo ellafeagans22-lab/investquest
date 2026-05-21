@@ -26,8 +26,10 @@ export async function POST() {
 
     return NextResponse.json({ url: session.url })
   } catch (err: unknown) {
+    console.error('Stripe error full:', JSON.stringify(err, null, 2))
+    console.error('Stripe error message:', (err as any)?.message)
+    console.error('Stripe error type:', (err as any)?.type)
     const message = err instanceof Error ? err.message : 'Unknown error'
-    console.error('Stripe error:', message)
     return NextResponse.json({ error: message }, { status: 500 })
   }
 }
