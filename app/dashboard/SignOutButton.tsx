@@ -50,6 +50,14 @@ export default function UserMenu({ name }: { name?: string | null }) {
             <PersonIcon />
             Profile
           </Link>
+          <Link
+            href="/upgrade"
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-2.5 px-4 py-3 text-sm text-gold hover:bg-white/5 transition-colors"
+          >
+            <span className="text-base leading-none">⭐</span>
+            Upgrade to Pro
+          </Link>
           <div className="border-t border-white/10" />
           <button
             onClick={handleSignOut}
