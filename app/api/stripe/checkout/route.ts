@@ -6,11 +6,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
 export async function POST() {
   try {
-    console.log('ENV CHECK', {
-      hasSecret: !!process.env.STRIPE_SECRET_KEY,
-      hasPrice: !!process.env.STRIPE_PRICE_ID,
-    })
-
     const supabase = await createServerSupabaseClient()
     const { data: { user } } = await supabase.auth.getUser()
 
