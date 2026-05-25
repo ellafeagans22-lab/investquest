@@ -4,17 +4,7 @@ import Link from 'next/link'
 import UserMenu from './SignOutButton'
 import DisplayNameEditor from './DisplayNameEditor'
 import BottomNav from '@/components/BottomNav'
-
-const allLessons = [
-  { id: '1', title: 'What is the Stock Market?' },
-  { id: '2', title: 'What is a Share?' },
-  { id: '3', title: 'Bulls vs. Bears' },
-  { id: '4', title: 'What is Compound Interest?' },
-  { id: '5', title: 'What is Inflation?' },
-  { id: '6', title: 'What is a Dividend?' },
-  { id: '7', title: 'What is Market Cap?' },
-  { id: '8', title: 'How to Read a Stock Chart?' },
-]
+import { WORLDS } from '@/lib/worlds'
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const BAR_MAX_PX = 44
@@ -43,7 +33,19 @@ export default async function DashboardPage() {
   const xpToNext = 100 - xpInLevel
 
   const completedIds = new Set((completions ?? []).map((r) => String(r.lesson_id)))
-  const nextLesson = allLessons.find((l) => !completedIds.has(l.id))
+
+  type NextLesson = { worldId: string; unitId: string; lessonId: string; title: string } | null
+  let nextLesson: NextLesson = null
+  outer: for (const world of WORLDS) {
+    for (const unit of world.units) {
+      for (const lesson of unit.lessons) {
+        if (!completedIds.has(lesson.id)) {
+          nextLesson = { worldId: world.id, unitId: unit.id, lessonId: lesson.id, title: lesson.title }
+          break outer
+        }
+      }
+    }
+  }
 
   // Build xp-per-day map
   const xpByDay = new Map<string, number>()
@@ -157,7 +159,7 @@ export default async function DashboardPage() {
             {/* Next lesson CTA */}
             {nextLesson ? (
               <Link
-                href={`/learn/${nextLesson.id}`}
+                href={`/learn/${nextLesson.worldId}/${nextLesson.unitId}/${nextLesson.lessonId}`}
                 className="mt-2 flex items-center justify-between gap-4 bg-gold text-navy font-semibold px-6 py-4 rounded-xl hover:opacity-90 transition-opacity"
               >
                 <div className="min-w-0">
