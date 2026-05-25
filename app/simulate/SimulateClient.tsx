@@ -139,10 +139,6 @@ export default function SimulateClient({ userId, initialCash, initialPositions, 
   }
 
   useEffect(() => {
-    throw new Error("Sentry test error - InvestQuest")
-  }, [])
-
-  useEffect(() => {
     refreshPrices()
     const interval = setInterval(refreshPrices, 30_000)
     return () => clearInterval(interval)

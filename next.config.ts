@@ -10,4 +10,5 @@ export default withSentryConfig(nextConfig, {
   project: "investquest",
   silent: true,
   disableLogger: true,
+  tunnelRoute: "/monitoring",
 });
