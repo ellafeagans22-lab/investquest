@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import * as Sentry from "@sentry/nextjs"
 import Link from 'next/link'
 import BottomNav from '@/components/BottomNav'
 import { createClient } from '@/lib/supabase-browser'
@@ -140,7 +139,7 @@ export default function SimulateClient({ userId, initialCash, initialPositions, 
   }
 
   useEffect(() => {
-    Sentry.captureException(new Error("Sentry test error - InvestQuest"))
+    throw new Error("Sentry test error - InvestQuest")
   }, [])
 
   useEffect(() => {
