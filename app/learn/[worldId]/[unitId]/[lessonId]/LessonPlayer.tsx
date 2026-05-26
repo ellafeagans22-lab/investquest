@@ -52,10 +52,43 @@ export default function LessonPlayer({
   const [done, setDone] = useState(false)
   const [awardingXp, setAwardingXp] = useState(false)
   const [xpDisplay, setXpDisplay] = useState(0)
+  const [hearts, setHearts] = useState(5)
+  const [outOfHearts, setOutOfHearts] = useState(false)
   const completionMessage = useMemo(
     () => COMPLETION_MESSAGES[Math.floor(Math.random() * COMPLETION_MESSAGES.length)],
     []
   )
+
+  useEffect(() => {
+    async function initHearts() {
+      const supabase = createClient()
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('hearts, hearts_last_refill')
+        .eq('id', userId)
+        .single()
+      if (!profile) return
+
+      const fetchedHearts: number = profile.hearts ?? 5
+      const lastRefill: string | null = profile.hearts_last_refill ?? null
+      let newHearts = fetchedHearts
+
+      if (fetchedHearts < 5 && lastRefill) {
+        const hoursSince = (Date.now() - new Date(lastRefill).getTime()) / (1000 * 60 * 60)
+        const refilled = Math.min(Math.floor(hoursSince / 2), 5 - fetchedHearts)
+        if (refilled > 0) {
+          newHearts = fetchedHearts + refilled
+          await supabase
+            .from('profiles')
+            .update({ hearts: newHearts, hearts_last_refill: new Date().toISOString() })
+            .eq('id', userId)
+        }
+      }
+
+      setHearts(newHearts)
+    }
+    initHearts()
+  }, [userId])
 
   useEffect(() => {
     if (!done) return
@@ -80,7 +113,7 @@ export default function LessonPlayer({
       const supabase = createClient()
       const { data: profile } = await supabase
         .from('profiles')
-        .select('xp, streak, last_active')
+        .select('xp, streak, last_active, dividends')
         .eq('id', userId)
         .single()
 
@@ -98,9 +131,11 @@ export default function LessonPlayer({
         newStreak = 1
       }
 
+      const currentDividends = profile?.dividends ?? 0
+      const dividendReward = 5 + (newStreak > 0 && newStreak % 7 === 0 ? 10 : 0)
       await supabase
         .from('profiles')
-        .update({ xp: currentXp + XP_REWARD, streak: newStreak, last_active: today })
+        .update({ xp: currentXp + XP_REWARD, streak: newStreak, last_active: today, dividends: currentDividends + dividendReward })
         .eq('id', userId)
       await supabase
         .from('lesson_completions')
@@ -113,6 +148,17 @@ export default function LessonPlayer({
   }
 
   function handleAnswer(correct: boolean) {
+    if (!correct) {
+      const newHearts = hearts - 1
+      setHearts(newHearts)
+      const supabase = createClient()
+      supabase.from('profiles').update({ hearts: newHearts, hearts_last_refill: new Date().toISOString() }).eq('id', userId)
+      if (newHearts <= 0) {
+        setOutOfHearts(true)
+        return
+      }
+    }
+
     if (currentIndex + 1 >= total) {
       awardXp()
       setDone(true)
@@ -191,6 +237,29 @@ export default function LessonPlayer({
     )
   }
 
+  // ── Out of hearts screen ──────────────────────────────────────────────────
+  if (outOfHearts) {
+    return (
+      <div className="flex flex-col min-h-screen bg-navy">
+        <div className="h-1 w-full bg-red-500" />
+        <div className="flex-1 flex flex-col items-center justify-center px-6 gap-6 text-center pb-28">
+          <span className="text-6xl">💔</span>
+          <div>
+            <p className="text-red-400 text-xs font-semibold uppercase tracking-widest mb-2">Out of hearts!</p>
+            <h1 className="text-3xl font-bold text-white mb-2">You ran out of hearts</h1>
+            <p className="text-white/40 text-sm">Hearts refill 1 every 2 hours. Come back soon!</p>
+          </div>
+          <Link
+            href={`/learn/${worldId}`}
+            className="w-full max-w-sm py-4 rounded-2xl bg-white/10 border border-white/20 text-white text-sm font-bold text-center hover:bg-white/15 transition-all"
+          >
+            ← Go Back
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
   const question = questions[currentIndex]
 
   // ── Question player ────────────────────────────────────────────────────────
@@ -210,9 +279,16 @@ export default function LessonPlayer({
             </div>
             <span className="text-white font-semibold text-xl tracking-tight">InvestQuest</span>
           </div>
-          <span className="text-white/30 text-xs tabular-nums font-semibold">
-            {currentIndex + 1} / {total}
-          </span>
+          <div className="flex items-center gap-3">
+            <div className="flex gap-0.5">
+              {Array.from({ length: 5 }, (_, i) => (
+                <span key={i} className={i < hearts ? 'text-base' : 'text-base opacity-20'}>❤️</span>
+              ))}
+            </div>
+            <span className="text-white/30 text-xs tabular-nums font-semibold">
+              {currentIndex + 1} / {total}
+            </span>
+          </div>
         </div>
       </nav>
 
