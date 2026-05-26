@@ -54,6 +54,8 @@ export default function LessonPlayer({
   const [xpDisplay, setXpDisplay] = useState(0)
   const [hearts, setHearts] = useState(5)
   const [outOfHearts, setOutOfHearts] = useState(false)
+  const [dividends, setDividends] = useState(0)
+  const [refilling, setRefilling] = useState(false)
   const completionMessage = useMemo(
     () => COMPLETION_MESSAGES[Math.floor(Math.random() * COMPLETION_MESSAGES.length)],
     []
@@ -64,7 +66,7 @@ export default function LessonPlayer({
       const supabase = createClient()
       const { data: profile } = await supabase
         .from('profiles')
-        .select('hearts, hearts_last_refill')
+        .select('hearts, hearts_last_refill, dividends')
         .eq('id', userId)
         .single()
       if (!profile) return
@@ -86,6 +88,7 @@ export default function LessonPlayer({
       }
 
       setHearts(newHearts)
+      setDividends(profile.dividends ?? 0)
     }
     initHearts()
   }, [userId])
@@ -239,6 +242,26 @@ export default function LessonPlayer({
 
   // ── Out of hearts screen ──────────────────────────────────────────────────
   if (outOfHearts) {
+    const canRefill = dividends >= 200
+
+    async function handleRefill() {
+      if (!canRefill || refilling) return
+      setRefilling(true)
+      try {
+        const supabase = createClient()
+        const now = new Date().toISOString()
+        await supabase
+          .from('profiles')
+          .update({ hearts: 5, hearts_last_refill: now, dividends: dividends - 200 })
+          .eq('id', userId)
+        setHearts(5)
+        setDividends(dividends - 200)
+        setOutOfHearts(false)
+      } finally {
+        setRefilling(false)
+      }
+    }
+
     return (
       <div className="flex flex-col min-h-screen bg-navy">
         <div className="h-1 w-full bg-red-500" />
@@ -249,12 +272,27 @@ export default function LessonPlayer({
             <h1 className="text-3xl font-bold text-white mb-2">You ran out of hearts</h1>
             <p className="text-white/40 text-sm">Hearts refill 1 every 2 hours. Come back soon!</p>
           </div>
-          <Link
-            href={`/learn/${worldId}`}
-            className="w-full max-w-sm py-4 rounded-2xl bg-white/10 border border-white/20 text-white text-sm font-bold text-center hover:bg-white/15 transition-all"
-          >
-            ← Go Back
-          </Link>
+          <div className="flex flex-col gap-3 w-full max-w-sm">
+            <button
+              onClick={handleRefill}
+              disabled={!canRefill || refilling}
+              className={`w-full py-4 rounded-2xl text-sm font-bold transition-all ${
+                canRefill
+                  ? 'bg-gold text-navy hover:opacity-90'
+                  : 'bg-white/5 border border-white/10 text-white/30 cursor-not-allowed'
+              }`}
+            >
+              {canRefill
+                ? (refilling ? 'Refilling…' : 'Refill Hearts — 200 Dividends 💰')
+                : 'Not enough Dividends (200 required)'}
+            </button>
+            <Link
+              href={`/learn/${worldId}`}
+              className="w-full py-4 rounded-2xl bg-white/10 border border-white/20 text-white text-sm font-bold text-center hover:bg-white/15 transition-all"
+            >
+              ← Go Back
+            </Link>
+          </div>
         </div>
       </div>
     )
