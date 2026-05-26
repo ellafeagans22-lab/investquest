@@ -76,13 +76,15 @@ export default function LessonPlayer({
       let newHearts = fetchedHearts
 
       if (fetchedHearts < 5 && lastRefill) {
-        const hoursSince = (Date.now() - new Date(lastRefill).getTime()) / (1000 * 60 * 60)
-        const refilled = Math.min(Math.floor(hoursSince / 2), 5 - fetchedHearts)
-        if (refilled > 0) {
+        const hoursSince = (Date.now() - new Date(lastRefill).getTime()) / 3_600_000
+        if (hoursSince >= 2) {
+          const refilled = Math.min(Math.floor(hoursSince / 2), 5 - fetchedHearts)
           newHearts = fetchedHearts + refilled
+          // Advance the timestamp by the hours consumed, preserving leftover progress
+          const newRefill = new Date(new Date(lastRefill).getTime() + refilled * 2 * 3_600_000).toISOString()
           await supabase
             .from('profiles')
-            .update({ hearts: newHearts, hearts_last_refill: new Date().toISOString() })
+            .update({ hearts: newHearts, hearts_last_refill: newRefill })
             .eq('id', userId)
         }
       }
@@ -318,6 +320,7 @@ export default function LessonPlayer({
             <span className="text-white font-semibold text-xl tracking-tight">InvestQuest</span>
           </div>
           <div className="flex items-center gap-3">
+            <span className="text-gold text-sm font-semibold tabular-nums">💰 {dividends}</span>
             <div className="flex gap-0.5">
               {Array.from({ length: 5 }, (_, i) => (
                 <span key={i} className={i < hearts ? 'text-base' : 'text-base opacity-20'}>❤️</span>
