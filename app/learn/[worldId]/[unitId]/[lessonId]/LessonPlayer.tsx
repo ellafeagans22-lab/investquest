@@ -152,12 +152,13 @@ export default function LessonPlayer({
     }
   }
 
-  function handleAnswer(correct: boolean) {
+  async function handleAnswer(correct: boolean) {
     if (!correct) {
       const newHearts = hearts - 1
       setHearts(newHearts)
       const supabase = createClient()
-      supabase.from('profiles').update({ hearts: newHearts, hearts_last_refill: new Date().toISOString() }).eq('id', userId)
+      const { error } = await supabase.from('profiles').update({ hearts: newHearts }).eq('id', userId)
+      console.log('hearts update:', newHearts, error)
       if (newHearts <= 0) {
         setOutOfHearts(true)
         return
