@@ -32,8 +32,10 @@ export default async function DashboardPage() {
   const lastRefill: string | null = profile?.hearts_last_refill ?? null
   let displayHearts = rawHearts
   if (rawHearts < 5 && lastRefill) {
-    const hoursSince = (Date.now() - new Date(lastRefill).getTime()) / (1000 * 60 * 60)
-    displayHearts = Math.min(rawHearts + Math.floor(hoursSince / 2), 5)
+    const hoursSince = (Date.now() - new Date(lastRefill).getTime()) / 3_600_000
+    if (hoursSince >= 2) {
+      displayHearts = Math.min(rawHearts + Math.floor(hoursSince / 2), 5)
+    }
   }
   const dividends: number = profile?.dividends ?? 0
 
