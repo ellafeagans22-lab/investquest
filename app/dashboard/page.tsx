@@ -20,7 +20,7 @@ export default async function DashboardPage() {
   const sevenDaysAgo = new Date(Date.now() - 6 * 86_400_000).toISOString().split('T')[0]
 
   const [{ data: profile }, { data: completions }, { data: xpHistory }] = await Promise.all([
-    supabase.from('profiles').select('display_name, xp, streak, hearts, hearts_last_refill, dividends').eq('id', user.id).maybeSingle(),
+    supabase.from('profiles').select('display_name, xp, streak, hearts, dividends').eq('id', user.id).maybeSingle(),
     supabase.from('lesson_completions').select('lesson_id').eq('user_id', user.id),
     supabase.from('xp_history').select('xp_earned, earned_at').eq('user_id', user.id).gte('earned_at', sevenDaysAgo),
   ])
@@ -28,15 +28,7 @@ export default async function DashboardPage() {
   const xp = profile?.xp ?? 0
   const streak = profile?.streak ?? 0
 
-  const rawHearts: number = profile?.hearts ?? 5
-  const lastRefill: string | null = profile?.hearts_last_refill ?? null
-  let displayHearts = rawHearts
-  if (rawHearts < 5 && lastRefill) {
-    const hoursSince = (Date.now() - new Date(lastRefill).getTime()) / 3_600_000
-    if (hoursSince >= 2) {
-      displayHearts = Math.min(rawHearts + Math.floor(hoursSince / 2), 5)
-    }
-  }
+  const displayHearts: number = profile?.hearts ?? 5
   const dividends: number = profile?.dividends ?? 0
 
   const level = Math.floor(xp / 100) + 1
